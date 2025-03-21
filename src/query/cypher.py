@@ -73,6 +73,11 @@ Schema:
         8. "How many symptoms are linked to Influenza?"
         MATCH (d:Disease {name: 'Influenza'})-[:HAS_SYMPTOM]->(s:Symptom)
         RETURN d.name AS disease, count(s) AS symptom_count, collect(s.name) AS symptoms
+
+        9. "Which diseases have Fever but not Nausea?"
+        MATCH (d:Disease {name: 'Fever'})-[:HAS_SYMPTOM]->(s:Symptom)
+        WHERE s.name <> 'Nausea'
+        RETURN d.name AS disease, collect(s.name) AS symptoms
     """
 
         # Create a prompt for the LLM
