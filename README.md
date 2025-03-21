@@ -53,15 +53,49 @@ docs/                        # Documentation
 pip install -r requirements.txt
 ```
 
-2. Set up a Neo4j database (make sure Neo4j is running)
+2. Install and configure Ollama (required for LLM functionality):
 
-3. Initialize the database with the Cypher script:
+   **Installation Instructions**
+   
+   - **Windows**: 
+     - Download the installer from [Ollama's official website](https://ollama.com/download)
+     - Run the installer and follow the on-screen instructions
+     - Ollama will run as a service in the background
+   
+   - **macOS**:
+     ```bash
+     curl -fsSL https://ollama.com/install.sh | sh
+     ```
+   
+   - **Linux**:
+     ```bash
+     curl -fsSL https://ollama.com/install.sh | sh
+     ```
+
+   **Download the LLM model**
+   
+   After installing Ollama, download the LLM model specified in your .env file:
+   ```bash
+   ollama pull gemma3:4b
+   ```
+   
+   You can also use other models by changing the `LLM_MODEL` value in your .env file and pulling that model instead.
+
+   **Verify Ollama is running**
+   ```bash
+   ollama list
+   ```
+   You should see your downloaded model(s) in the list.
+
+3. Set up a Neo4j database (make sure Neo4j is running)
+
+4. Initialize the database with the Cypher script:
 ```
 cat db_scripts/init_neo4j.cypher | cypher-shell -u neo4j -p your_password
 ```
    Alternatively, you can copy and paste the commands from `db_scripts/init_neo4j.cypher` into the Neo4j Browser.
 
-4. Configure environment variables in a `.env` file:
+5. Configure environment variables in a `.env` file:
 ```
 NEO4J_URI=bolt://localhost:7687
 NEO4J_USERNAME=neo4j
