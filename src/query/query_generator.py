@@ -6,6 +6,7 @@ from neo4j import GraphDatabase
 # Change relative imports to absolute imports
 from src.db.connection import get_neo4j_session
 from src.config import LLM_MODEL, get_logger
+import re
 
 # Get module-specific logger
 logger = get_logger("query.query_generator")
@@ -137,6 +138,13 @@ def create_query_with_llm(entities, query_type):
     Entities mentioned: {', '.join(entities)}
     Query type: {query_type} - {context}
     
+    IMPORTANT SYNTAX RULES:
+    - Must verify that the query is valid before returning it
+    - Always use RETURN at the end of the query
+    - ALWAYS use toLower() for case-insensitive string comparisons like: WHERE toLower(d.name) = toLower("Hypertension")
+    - When using IN for multiple values, use single quotes inside parentheses: WHERE toLower(s.name) IN ['fever', 'cough']
+    - Never use multiple RETURN statements in a single query
+    
     Generate a Cypher query that:
     1. Properly references the entities mentioned
     2. Returns the most relevant information for the query type
@@ -144,12 +152,19 @@ def create_query_with_llm(entities, query_type):
     4. Handles cases where data might not exist with OPTIONAL MATCH
     5. Includes relevant aggregation functions like COLLECT() where appropriate
     6. Limits results to relevant information only
+    7. Match entities with their correct node types (e.g., use disease.name when comparing disease names, not symptom.name)
     
-    IMPORTANT SYNTAX RULES:
-    - Must verify that the query is valid before returning it
-    - Always compare in case-insensitive manner
-    - Always use RETURN at the end of the query
+    EXAMPLES:
     
+    BAD: MATCH (d:Disease)-[:HAS_SYMPTOM]->(s:Symptom) WHERE d.name = "hypertension" RETURN s.name AS SymptomName
+    GOOD: MATCH (d:Disease)-[r:HAS_SYMPTOM]->(s:Symptom) WHERE toLower(d.name) = toLower("hypertension") RETURN s.name AS SymptomName, r.name AS RelationshipName, d.name AS DiseaseName
+    
+    BAD: MATCH (s:Symptom)-[r:HAS_SYMPTOM]->(d:Disease) WHERE s.name = "Headache" RETURN d.name
+    GOOD: MATCH (d:Disease)-[r:HAS_SYMPTOM]->(s:Symptom) WHERE toLower(s.name) = toLower("Headache") RETURN s.name AS SymptomName, r.name AS RelationshipName, d.name AS DiseaseName
+    
+    BAD: MATCH (d:Disease)-[r:HAS_SYMPTOM]->(s:Symptom) WHERE toLower(d.name) = toLower("Headache") RETURN s.name
+    GOOD: MATCH (d:Disease)-[r:HAS_SYMPTOM]->(s:Symptom) WHERE toLower(s.name) = toLower("Headache") RETURN s.name AS SymptomName, r.name AS RelationshipName, d.name AS DiseaseName
+
     Return only the Cypher query with no explanation or markdown formatting.
     """
     
@@ -228,22 +243,14 @@ def execute_query(query):
 
 def neo4j_to_python(value):
     """
-    Convert Neo4j database objects to Python native types for JSON serialization.
-    
-    Handles:
-    - Neo4j Node objects
-    - Neo4j Relationship objects
-    - Neo4j Path objects
-    - Lists/collections of Neo4j objects
-    - Basic Python types (pass-through)
+    Convert Neo4j types to Python native types for serialization.
     
     Args:
-        value: A Neo4j value to convert
+        value: A value from a Neo4j record
         
     Returns:
-        A Python native type suitable for JSON serialization
+        A serializable Python object
     """
-    # Import locally to avoid circular imports
     from neo4j.graph import Node, Relationship, Path
     
     # Handle None
@@ -252,32 +259,33 @@ def neo4j_to_python(value):
         
     # Handle Neo4j Node
     if isinstance(value, Node):
-        node_dict = dict(value.items())
-        node_dict['_labels'] = list(value.labels)
-        node_dict['_id'] = value.id
+        node_dict = dict(value)
+        node_dict["_id"] = value.id
+        node_dict["_labels"] = list(value.labels)
         return node_dict
         
     # Handle Neo4j Relationship
-    elif isinstance(value, Relationship):
-        rel_dict = dict(value.items())
-        rel_dict['_type'] = value.type
-        rel_dict['_start_node_id'] = value.start_node.id
-        rel_dict['_end_node_id'] = value.end_node.id
+    if isinstance(value, Relationship):
+        rel_dict = dict(value)
+        rel_dict["_id"] = value.id
+        rel_dict["_type"] = value.type
+        rel_dict["_start_node"] = neo4j_to_python(value.start_node)
+        rel_dict["_end_node"] = neo4j_to_python(value.end_node)
         return rel_dict
         
     # Handle Neo4j Path
-    elif isinstance(value, Path):
+    if isinstance(value, Path):
         return {
-            'nodes': [neo4j_to_python(node) for node in value.nodes],
-            'relationships': [neo4j_to_python(rel) for rel in value.relationships]
+            "nodes": [neo4j_to_python(node) for node in value.nodes],
+            "relationships": [neo4j_to_python(rel) for rel in value.relationships]
         }
         
-    # Handle lists/collections
-    elif isinstance(value, (list, set)):
+    # Handle collections
+    if isinstance(value, (list, set)):
         return [neo4j_to_python(item) for item in value]
         
     # Handle dictionaries
-    elif isinstance(value, dict):
+    if isinstance(value, dict):
         return {k: neo4j_to_python(v) for k, v in value.items()}
         
     # Pass through basic types

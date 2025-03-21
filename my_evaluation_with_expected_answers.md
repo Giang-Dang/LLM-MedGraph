@@ -1,55 +1,55 @@
-# Question-Answer Evaluation Report
+# Neo4j Question-Answer Evaluation Report
 
-Generated: 2025-03-22 01:58:28
+Generated: 2025-03-22 02:41:10
 
 ## Summary Metrics
 
 - **Number of Questions**: 37
 - **Questions Evaluated**: 37
-- **Average Score**: 0.42
-- **Total Score**: 15.70
+- **Average Score**: 0.69
+- **Total Score**: 25.70
 
 ## Evaluation Results
 
 | No. | Question | System Answer | Expected Answer | Score | Explanation |
 |-----|----------|---------------|-----------------|-------|-------------|
-| 1 | What are the symptoms of Influenza? | Okay, here’s a breakdown of the symptoms associated with Influenza:<br><br>The most common symptoms of Influenza include fever, cough, and fatigue. | The symptoms of Influenza are fever, cough, and fatigue. | 0.95 | The system answer is highly accurate and complete. It correctly identifies the three most common symptoms of influenza (fever, cough, and fatigue). The phrasing is slightly different from the expected answer, but the core information is identical and accurately presented. Therefore, it receives a near-perfect score. |
-| 2 | What treatments are available for Diabetes? | Currently, the primary treatment for Diabetes is Insulin Therapy. This involves using insulin to manage blood sugar levels. <br><br>Do you want me to elaborate on Insulin Therapy or perhaps explore other potential treatment approaches for Diabetes? | Diabetes is treated with insulin therapy. | 0.85 | The system answer is largely correct and relevant. It accurately identifies insulin therapy as the primary treatment for diabetes and briefly explains its purpose. It’s missing the succinctness of the expected answer, but the core information is present and accurate. A slight deduction is made for the slightly verbose phrasing. |
-| 3 | What prevention methods are available for Asthma? | I couldn't find any information for your question. | Asthma can be prevented by avoiding allergens. | 0.10 | The system provided an answer ("I couldn't find any information for your question."), which is technically correct in that it acknowledges a lack of information. However, it fails to provide any relevant information, completely missing the opportunity to address the question about preventing asthma. It receives a very low score because it doesn't fulfill the basic requirement of providing an answer, even a negative one, and doesn't demonstrate any understanding of the topic. |
-| 4 | What symptoms are associated with Hypertension? | I couldn't find any information for your question. | Hypertension is associated with shortness of breath and chest pain. | 0.00 | The system’s response, “I couldn’t find any information for your question,” indicates a complete failure to address the query. The expected answer provides a specific, medically relevant association (hypertension and symptoms). The system provided no information whatsoever, failing on all three criteria (correctness, completeness, and relevance). |
-| 5 | Which diseases have Fever as a symptom? | I couldn't find any information for your question. | Influenza has fever as a symptom. | 0.10 | The system provided an answer ("I couldn't find any information for your question."), which is technically correct in that it acknowledges a lack of information. However, it completely fails to address the question, which was about the symptom of influenza. It receives a very low score because it doesn't offer any relevant information and demonstrates a failure to understand the query. |
-| 6 | What treatments does Migraine have? | Error: {code: Neo.ClientError.Statement.SyntaxError} {message: RETURN can only be used at the end of the query. (line 2, column 1 (offset: 69))<br>"RETURN t.name AS TreatmentName, t.description AS TreatmentDescription"<br> ^} | Migraines are treated with pain relievers. | 0.00 | Query execution failed |
-| 7 | How can Influenza be prevented? | The best way to prevent Influenza is through vaccination. Vaccines are available to help protect you from getting the flu. | Influenza can be prevented through vaccination. | 0.95 | The system answer is highly accurate and relevant. It correctly states that vaccination is the best way to prevent influenza and explains the purpose of vaccines. It covers all the key elements of the expected answer. A slight deduction (0.05) is made because it’s a slightly verbose phrasing compared to the more concise expected answer. |
-| 8 | List the symptoms of Diabetes. | Error: {code: Neo.ClientError.Statement.SyntaxError} {message: Invalid input 'WHERE': expected 'FOREACH', ',', 'ORDER BY', 'CALL', 'CREATE', 'LOAD CSV', 'DELETE', 'DETACH', 'FINISH', 'INSERT', 'LIMIT', 'MATCH', 'MERGE', 'NODETACH', 'OFFSET', 'OPTIONAL', 'REMOVE', 'RETURN', 'SET', 'SKIP', 'UNION', 'UNWIND', 'USE', 'WITH' or <EOF> (line 3, column 1 (offset: 100))<br>"WHERE d.name = 'Diabetes' OR s.name IN ['blurred vision', 'excessive thirst', 'frequent urination', 'slow-healing sores', 'fatigue']"<br> ^} | Diabetes has symptoms of fatigue and blurred vision. | 0.00 | Query execution failed |
-| 9 | Find diseases that have Cough as a symptom. | I couldn't find any information for your question. | Influenza and Asthma have cough as a symptom. | 0.20 | The system’s answer, “I couldn’t find any information for your question,” indicates a failure to provide any relevant information. While technically correct in that it didn’t find *specific* information, it doesn’t fulfill the requirement of providing a factual answer. The expected answer directly addresses the implied question (the relationship between Influenza and Asthma) with a relevant symptom. The system’s response is entirely irrelevant and therefore scores very low. |
-| 10 | What prevention methods does Diabetes have? | Okay, let's talk about preventing Diabetes. Based on the information we have, a key prevention method is maintaining a **Healthy Diet**. Focusing on a balanced and nutritious diet is a significant step in reducing your risk. <br><br>Do you want to explore other aspects of diabetes prevention, such as exercise or lifestyle changes? | Diabetes can be prevented with a healthy diet. | 0.85 | The system’s answer is largely correct and relevant. It accurately identifies “maintaining a Healthy Diet” as a key prevention method for diabetes. It also provides a brief, supportive explanation. While it doesn’t cover other aspects like exercise or lifestyle changes as requested in the expected answer, it fulfills the core requirement of stating a key preventative measure. Therefore, it receives a high score, reflecting a good response to the question. |
-| 11 | What is the treatment for Asthma? | I couldn't find any information for your question. | Asthma is treated with bronchodilators. | 0.10 | The system’s answer, “I couldn’t find any information for your question,” is entirely irrelevant and provides no useful information. While technically correct in that it didn’t find *any* information, it fails to address the implied question about asthma treatment. A score of 0.1 reflects a minimal acknowledgement of the request, but a complete failure to provide a relevant answer. |
-| 12 | Which disease uses Vaccination as prevention? | According to the database, **Influenza** is a disease that utilizes vaccination as a preventative measure. Vaccination is the method used to protect against it. | Influenza uses vaccination as prevention. | 0.85 | The system answer is largely correct and relevant. It accurately states that Influenza utilizes vaccination for prevention. While the phrasing is slightly more verbose than the expected answer, it conveys the same core information. There's no factual error, and it directly addresses the question. A slight deduction is made for the slightly less concise wording. |
-| 13 | What symptoms does Asthma have? | I couldn't find any information for your question. | Asthma has symptoms of shortness of breath and cough. | 0.10 | The system’s answer, “I couldn’t find any information for your question,” is entirely unhelpful and doesn’t address the implied question about asthma symptoms. While technically correct in that it didn’t find information, it fails on all other criteria – correctness (it doesn’t provide any information), completeness (it doesn’t offer any relevant details), and relevance (it doesn’t answer the question). A score of 0.1 reflects the minimal value it provides simply because it acknowledges the question was attempted. |
-| 14 | How many symptoms are linked to Influenza? | According to the database, Influenza is associated with several symptoms. These include fever, cough, and fatigue. | Influenza has 3 symptoms: fever, cough, and fatigue. | 0.85 | The system answer is largely correct and relevant. It accurately identifies the three key symptoms associated with Influenza (fever, cough, and fatigue). The phrasing is slightly verbose ("According to the database, Influenza is associated with several symptoms"), but the core information is presented correctly. Therefore, it receives a high score reflecting its accuracy and direct response to the implied question. |
-| 15 | Which diseases show Fatigue as a symptom? | Okay, here’s a breakdown of diseases where fatigue is a symptom, based on the available information:<br><br>**Fatigue** can be a symptom of several conditions. According to the database, it’s associated with:<br><br>*   **Influenza:** Fatigue is a common symptom of the flu.<br>*   **Diabetes:** Fatigue is also frequently reported as a symptom of diabetes.<br><br>Do you want me to elaborate on any of these diseases or perhaps search for other conditions that include fatigue as a symptom? | Influenza and Diabetes show fatigue as a symptom. | 0.95 | The system’s answer is highly accurate and relevant. It correctly identifies Influenza and Diabetes as diseases associated with fatigue, as stated in the expected answer. The response is clear, concise, and offers further options for elaboration or searching, demonstrating a helpful and informative approach. The score is slightly reduced (only 0.95) to account for the minor possibility of a slight nuance in the expected answer's phrasing. |
-| 16 | List all diseases with their symptoms. | Here’s a breakdown of diseases and their associated symptoms based on the available data:<br><br>*   **Influenza:** Symptoms include Fever, Cough, and Fatigue.<br>*   **Asthma:** Symptoms include Cough and Shortness of Breath.<br>*   **Diabetes:** Symptoms include Fatigue and Blurred Vision.<br>*   **Migraine:** Symptoms include Headache and Nausea.<br>*   **Hypertension:** Symptoms include Shortness of Breath and Chest Pain.<br><br>Please note that this information is based solely on the provided database results and may not represent a complete list of symptoms or diseases. | Influenza: fever, cough, fatigue. Diabetes: fatigue, blurred vision. Hypertension: shortness of breath, chest pain. Asthma: shortness of breath, cough. Migraine: headache, nausea. | 0.95 | The system answer is highly accurate and complete. It correctly lists the symptoms associated with each disease as provided in the expected answer. The formatting is also consistent and clear. The inclusion of the disclaimer about the data source is a positive addition, demonstrating responsible AI behavior. The only minor deduction is for not using the exact wording from the expected answer, but the core information is perfectly conveyed. |
-| 17 | What is the prevention method for Migraine? | Okay, let's talk about migraine prevention. Based on the information available, a key method is **stress management**. Managing stress can be a really important part of preventing migraine attacks. <br><br>Do you want to explore other potential prevention strategies as well? | Migraines can be prevented through stress management. | 0.85 | The system’s answer is largely correct and relevant. It accurately identifies “stress management” as a key prevention strategy for migraines. It’s a complete answer to the expected response. The language is also appropriate and helpful. A slight deduction (0.15) is made because it’s a very basic response and doesn’t offer any further elaboration or acknowledge other potential preventative measures, even though the prompt asks if the system wants to explore others. |
-| 18 | What treatment is given for Hypertension? | I couldn't find any information for your question. | Hypertension is treated with antihypertensive drugs. | 0.20 | The system’s answer, “I couldn’t find any information for your question,” is technically correct in that it acknowledges a lack of information. However, it doesn’t provide any useful information or address the underlying medical question. It receives a low score because it fails to fulfill the basic requirement of providing a relevant answer, even if it correctly identifies a lack of data. It’s a placeholder response and doesn’t demonstrate any understanding of the query. |
-| 19 | Find diseases that have Headache as a symptom. | I couldn't find any information for your question. | Migraine has headache as a symptom. | 0.10 | The system’s answer, “I couldn’t find any information for your question,” is entirely unhelpful and doesn’t address the question at all. While technically correct in that it didn’t find information, it fails to provide any relevant information. It receives a very low score because it doesn’t demonstrate any understanding or attempt to answer the query, and completely misses the expected factual response about migraine symptoms. |
-| 20 | Which disease is linked to Nausea? | I couldn't find any information for your question. | Migraine is linked to nausea. | 0.10 | The system’s answer, “I couldn’t find any information for your question,” is entirely irrelevant and incorrect. While it acknowledges a lack of information, it doesn't provide any useful information or even attempt to address the implied question (likely about the relationship between migraines and nausea). The expected answer directly states a factual link, and the system fails to do so. Therefore, the score is very low, reflecting a complete failure to address the question. |
-| 21 | List the treatments for Hypertension. | I couldn't find any information for your question. | Hypertension is treated with antihypertensive drugs. | 0.20 | The system’s answer, “I couldn’t find any information for your question,” is technically correct in that it acknowledges a lack of information. However, it fails to provide any useful information whatsoever. While it addresses the question of finding information, it doesn't fulfill the core requirement of answering the question itself. The expected answer provides a basic, relevant fact about hypertension treatment. The system’s response receives a very low score due to its complete lack of helpful information. |
-| 22 | What prevention methods are used for Influenza? | The primary prevention method for Influenza is vaccination. Getting an annual influenza vaccine is the best way to protect yourself and others from the virus. | Influenza prevention includes vaccination. | 0.95 | The system answer is highly accurate and relevant. It correctly identifies vaccination as the primary prevention method for influenza and explicitly states the importance of annual vaccination. It covers all the key elements of the expected answer. A slight deduction (0.05) is made because it’s a slightly verbose response when a more concise answer would be ideal, but the information provided is entirely correct and relevant. |
-| 23 | What symptoms are related to Migraine? | Error: {code: Neo.ClientError.Statement.SyntaxError} {message: Invalid input 'WHERE': expected 'FOREACH', ',', 'ORDER BY', 'CALL', 'CREATE', 'LOAD CSV', 'DELETE', 'DETACH', 'FINISH', 'INSERT', 'LIMIT', 'MATCH', 'MERGE', 'NODETACH', 'OFFSET', 'OPTIONAL', 'REMOVE', 'RETURN', 'SET', 'SKIP', 'UNION', 'UNWIND', 'USE', 'WITH' or <EOF> (line 3, column 1 (offset: 100))<br>"WHERE d.name = 'Migraine'"<br> ^} | Migraines are related to headaches and nausea. | 0.00 | Query execution failed |
-| 24 | How is Diabetes treated? | Based on the information available, the primary treatment for Diabetes is Insulin Therapy. | Diabetes is treated with insulin therapy. | 0.90 | The system answer is entirely correct and provides the primary treatment for diabetes. It’s phrased slightly differently than the expected answer ("Diabetes is treated with insulin therapy"), but the core information is accurately conveyed. The phrasing is acceptable and doesn’t detract from the factual correctness. Therefore, a score of 0.9 reflects a very high degree of accuracy and relevance. |
-| 25 | Which diseases are prevented by a Healthy Diet? | According to the database, a healthy diet can help prevent Influenza. | Diabetes is prevented by a healthy diet. | 0.20 | The system answer correctly states that a healthy diet can help prevent Influenza, which is factually accurate. However, the expected answer specifically mentions *diabetes* prevention. The system answer fails to address the key element of the expected answer – the disease being prevented. Therefore, it receives a low score due to a significant lack of completeness and direct relevance to the expected answer. |
-| 26 | List diseases that have Shortness of Breath as a symptom. | I couldn't find any information for your question. | Hypertension and Asthma have shortness of breath as a symptom. | 0.20 | The system’s answer correctly identifies shortness of breath as a symptom, which is a relevant aspect of the expected answer. However, it fails to provide any context or connection to the specific medical conditions mentioned (Hypertension and Asthma). It’s a very basic response and doesn’t demonstrate understanding of the question's intent. Therefore, it receives a low score due to lack of completeness and context. |
-| 27 | What are the common symptoms of Asthma? | Based on the information available, common symptoms of Asthma include a cough and shortness of breath. | Asthma has symptoms of shortness of breath and cough. | 0.90 | The system’s answer is entirely correct and accurately lists common symptoms of asthma (cough and shortness of breath). It’s a complete and relevant response to the question. The wording is slightly different, but the core information is identical and accurate. |
-| 28 | Which diseases are linked to Cough and Fever? | I couldn't find any information for your question. | Influenza is linked to both cough and fever. | 0.10 | The system’s response, “I couldn’t find any information for your question,” indicates a failure to provide any answer whatsoever. While technically correct in that it didn’t find information, it doesn’t fulfill the core function of a question answering system. The expected answer provides a specific, relevant fact. The system receives a very low score due to its complete lack of a useful response. |
-| 29 | What treatment does Influenza have? | Based on the information available, the primary treatment for Influenza is Antiviral Medication. | Influenza is treated with antiviral medication. | 0.90 | The system answer is highly accurate and directly addresses the question. It correctly identifies antiviral medication as the primary treatment for influenza. The phrasing is slightly different from the expected answer ("Influenza is treated with antiviral medication"), but the core information is conveyed accurately and completely. A minor difference in wording doesn't significantly detract from the overall quality of the response. |
-| 30 | What prevention is recommended for Hypertension? | I couldn't find any information for your question. | Regular exercise is recommended for preventing hypertension. | 0.10 | The system’s answer, “I couldn’t find any information for your question,” indicates a failure to provide an answer. While technically correct in that it didn’t find information, it doesn’t fulfill the core function of a question answering system. The expected answer provides a specific recommendation. The score reflects a very low level of performance as it simply states a lack of information without offering any relevant response. |
-| 31 | Which disease has the symptom Dizziness? | I couldn't find any information for your question. | None of the diseases in the database have dizziness as a symptom. | 0.20 | The system’s answer is technically correct in that it states no diseases in the database have dizziness as a symptom. However, it fails to provide any context or explanation, which is a crucial element of a good medical answer. The expected answer offers a more informative response by stating *why* no matches were found. The system’s response is simply a negative result without any supporting information, significantly reducing its usefulness and therefore the score. |
-| 32 | List the treatments available for Migraine. | Based on the available information, the primary treatment listed for Migraine is “Pain Relievers.” However, the description of this treatment is currently not provided. <br><br>It’s important to note that this is a limited set of results, and there are many other treatments available for migraine, such as prescription medications, lifestyle adjustments, and alternative therapies. <br><br>Would you like me to explore other potential treatments for migraine, or perhaps provide more details about “Pain Relleivers”? | Migraines are treated with pain relievers. | 0.75 | The system’s answer is largely correct and relevant. It correctly identifies “Pain Relleivers” as a primary treatment for migraine. However, it acknowledges the lack of detail, which is a valid limitation of the current information. It also appropriately suggests other treatments exist. While not perfectly concise like the expected answer, it fulfills the core requirements of the question. |
-| 33 | What are the prevention methods for Diabetes? | Okay, let’s talk about preventing diabetes. Based on the information available, a key prevention method is maintaining a **healthy diet**. Focusing on a balanced and nutritious eating plan is a really important step in reducing your risk. <br><br>Do you want to explore other aspects of diabetes prevention, such as exercise or lifestyle changes? | Diabetes can be prevented with a healthy diet. | 0.85 | The system’s answer is largely correct and relevant. It accurately identifies a key preventative measure – a healthy diet. While it doesn’t explicitly state “Diabetes can be prevented,” the phrasing “reducing your risk” effectively conveys this. It also proactively offers to explore other aspects, demonstrating a helpful and informative approach. The score is slightly reduced because a more direct statement of prevention would have been ideal, but the response is still very good. |
-| 34 | How many diseases have the symptom Chest Pain? | I couldn't find any information for your question. | One disease (Hypertension) has chest pain as a symptom. | 0.20 | The system correctly identifies that *Hypertension* has chest pain as a symptom, fulfilling a key aspect of the expected answer. However, it fails to provide any information at all, making it a very weak response. It doesn't demonstrate relevance beyond simply stating it couldn't find information, and lacks any useful details. The score reflects a minimal acknowledgement of the expected answer's core content. |
-| 35 | Which diseases can be prevented by Regular Exercise? | Error: {code: Neo.ClientError.Statement.SyntaxError} {message: Invalid input 'WHERE': expected an expression, 'FOREACH', ',', 'AS', 'ORDER BY', 'CALL', 'CREATE', 'LOAD CSV', 'DELETE', 'DETACH', 'FINISH', 'INSERT', 'LIMIT', 'MATCH', 'MERGE', 'NODETACH', 'OFFSET', 'OPTIONAL', 'REMOVE', 'RETURN', 'SET', 'SKIP', 'UNION', 'UNWIND', 'USE', 'WITH' or <EOF> (line 4, column 1 (offset: 74))<br>"WHERE p.name = "Vaccination""<br> ^} | Hypertension can be prevented by regular exercise. | 0.00 | Query execution failed |
-| 36 | What symptom is most common in Influenza? | I couldn't find any information for your question. | According to the prevalence data, fever is the most common symptom in Influenza with a prevalence of 90. | 0.00 | The system’s answer, “I couldn’t find any information for your question,” indicates a complete failure to address the query. The expected answer provides specific, factual information about a symptom (fever) and its prevalence in a disease (Influenza). The system’s response offers no relevant information whatsoever, thus receiving a score of 0.0. |
-| 37 | Which diseases have Sweating as a symptom? | I couldn't find any information for your question. | None of the diseases in the database have sweating as a symptom. | 0.20 | The system’s answer, “I couldn’t find any information for your question,” is technically correct in that it indicates a lack of information. However, it fails to provide any useful information or context. The expected answer offers a specific negative finding – that no diseases in the database share the symptom of sweating. This lack of a substantive response significantly reduces the score. While relevant, the system’s response is extremely unhelpful. |
+| 1 | What are the symptoms of Influenza? | Okay, here’s what we know about the symptoms of Influenza:<br><br>The most common symptoms of Influenza include fever, cough, and fatigue. | The symptoms of Influenza are fever, cough, and fatigue. | 0.95 | The system answer is highly accurate and complete. It correctly identifies the three most common symptoms of influenza (fever, cough, and fatigue). The phrasing is slightly different from the expected answer, but the core information is identical and factually correct. Therefore, it receives a near-perfect score. |
+| 2 | What treatments are available for Diabetes? | Based on the available information, the primary treatment for Diabetes is Insulin Therapy. <br><br>Do you want me to elaborate on Insulin Therapy or perhaps explore other potential treatment options for Diabetes? | Diabetes is treated with insulin therapy. | 0.90 | The system answer is entirely correct and directly addresses the question by stating the primary treatment for diabetes is insulin therapy. It’s a concise and accurate response. A slight deduction (0.9 instead of 1.0) is made because it doesn’t offer any further detail, which could be beneficial in a comprehensive answer. |
+| 3 | What prevention methods are available for Asthma? | Okay, here’s what we know about asthma prevention based on the available information:<br><br>One key prevention method for asthma is to **avoid allergens**. Identifying and minimizing your exposure to things like dust mites, pollen, mold, and pet dander can significantly reduce your risk of developing asthma or triggering symptoms if you already have it. <br><br>Do you want me to elaborate on any specific allergen or explore other potential preventative measures? | Asthma can be prevented by avoiding allergens. | 0.95 | The system’s answer is highly accurate and relevant. It correctly identifies the key preventative measure – avoiding allergens – and provides specific examples (dust mites, pollen, mold, pet dander). The concluding question inviting further elaboration demonstrates a helpful and interactive approach. It’s almost a perfect representation of the expected answer. |
+| 4 | What symptoms are associated with Hypertension? | Okay, here’s what we know about the symptoms associated with hypertension (high blood pressure):<br><br>According to the information available, some symptoms of hypertension include shortness of breath and chest pain. <br><br>**Important Note:** It’s crucial to remember that hypertension often has no noticeable symptoms, which is why it’s called the “silent killer.” Regular blood pressure checks are essential for early detection and management. <br><br>**Disclaimer:** *I am an AI Chatbot and not a medical professional. This information is for general knowledge and informational purposes only, and does not constitute medical advice. It is essential to consult with a qualified healthcare provider for any health concerns or before making any decisions related to your health or treatment.* | Hypertension is associated with shortness of breath and chest pain. | 0.95 | The system answer is highly accurate and relevant. It correctly identifies shortness of breath and chest pain as symptoms of hypertension. The inclusion of the "silent killer" disclaimer and the importance of regular checks adds significant value and demonstrates responsible AI behavior. It fully covers the expected answer. |
+| 5 | Which diseases have Fever as a symptom? | Based on the information available, Fever is a symptom of Influenza. | Influenza has fever as a symptom. | 0.90 | The system answer is entirely correct and directly addresses the question. It accurately states that fever is a symptom of influenza. There's nothing missing, and the phrasing is clear and concise. A score of 0.9 reflects a very high degree of accuracy and relevance. |
+| 6 | What treatments does Migraine have? | Based on the information available, treatments for Migraine often address the associated symptoms. Migraine is frequently accompanied by symptoms like nausea. Treatment strategies for Migraine typically focus on managing these symptoms alongside the headache itself. <br><br>It’s important to note that this is a simplified overview, and a comprehensive treatment plan for Migraine should be developed in consultation with a healthcare professional. | Migraines are treated with pain relievers. | 0.60 | The system’s answer is partially correct and relevant. It correctly identifies that treatments for migraines often focus on managing associated symptoms like nausea. However, it doesn’t provide the most direct and concise answer to the expected “Migraines are treated with pain relievers.” While the system acknowledges treatment, it lacks the core factual statement. The disclaimer about consulting a healthcare professional is also relevant but doesn’t contribute to the directness of the answer. |
+| 7 | How can Influenza be prevented? | I couldn't find any information for your question. | Influenza can be prevented through vaccination. | 0.20 | The system’s answer, “I couldn’t find any information for your question,” is technically correct in that it acknowledges a lack of information. However, it provides no useful information whatsoever. While it’s relevant to the question (since the question asks about influenza prevention), it fails on both correctness and completeness. A better answer would have offered at least a basic preventative measure. Therefore, it receives a very low score reflecting its lack of helpfulness. |
+| 8 | List the symptoms of Diabetes. | Okay, here’s a list of symptoms associated with Diabetes, based on the information available:<br><br>Some common symptoms of Diabetes include fatigue and blurred vision. <br><br>Do you want me to provide more details about these symptoms or perhaps explore other symptoms associated with Diabetes? | Diabetes has symptoms of fatigue and blurred vision. | 0.85 | The system’s answer is largely correct and relevant. It accurately lists “fatigue and blurred vision” as symptoms of diabetes. It also offers a helpful follow-up question, indicating an attempt to provide more information. The only minor deduction is that it doesn’t explicitly state “Diabetes has symptoms of…” which would make it slightly more concise and directly aligned with the expected answer’s phrasing. |
+| 9 | Find diseases that have Cough as a symptom. | Okay, here’s a list of diseases that have cough as a symptom, based on the available data:<br><br>*   **Influenza:** Cough is a symptom of Influenza.<br>*   **Asthma:** Cough is also a symptom of Asthma.<br><br>Do you want me to search for more diseases with cough as a symptom? | Influenza and Asthma have cough as a symptom. | 0.95 | The system’s answer is highly accurate and complete. It correctly identifies Influenza and Asthma as diseases with cough as a symptom. The phrasing is clear and concise, directly addressing the question. The slight deduction (5%) is only for the slightly verbose introductory phrase "Okay, here’s a list of diseases..." which isn't strictly necessary for the core information. |
+| 10 | What prevention methods does Diabetes have? | Okay, let's talk about preventing Diabetes. Based on the information available, a **Healthy Diet** is a key prevention method. Maintaining a healthy diet is important in reducing your risk of developing Diabetes. <br><br>Do you want to explore specific dietary recommendations or other prevention strategies for Diabetes? | Diabetes can be prevented with a healthy diet. | 0.85 | The system’s answer is largely correct and relevant. It accurately identifies a “Healthy Diet” as a key prevention method for Diabetes. It also provides a brief, understandable explanation. While it could be more comprehensive, it fulfills the core requirements of the expected answer. A slight deduction is made because it doesn’t explicitly state “Diabetes can be prevented” as the expected answer does. |
+| 11 | What is the treatment for Asthma? | I couldn't find any information for your question. | Asthma is treated with bronchodilators. | 0.10 | The system’s answer, “I couldn’t find any information for your question,” is entirely irrelevant and provides no useful information. While technically correct in that it didn’t find *any* information, it fails to address the implied question about asthma treatment. A score of 0.1 reflects a minimal acknowledgement of the request, but a complete failure to provide a relevant response. |
+| 12 | Which disease uses Vaccination as prevention? | I couldn't find any information for your question. | Influenza uses vaccination as prevention. | 0.10 | The system’s answer, “I couldn’t find any information for your question,” is entirely unhelpful and doesn’t address the question at all. While technically correct in that it didn’t find information, it fails to provide any relevant information or acknowledge the query. It receives a very low score because it doesn’t fulfill any of the criteria for a useful answer. |
+| 13 | What symptoms does Asthma have? | Okay, here’s what we know about the symptoms of asthma:<br><br>Common symptoms of asthma include a cough and shortness of breath. <br><br>Do you want to know more about these symptoms or perhaps explore other aspects of asthma? | Asthma has symptoms of shortness of breath and cough. | 0.90 | The system’s answer is highly accurate and relevant. It correctly identifies the key symptoms of asthma – shortness of breath and cough. The phrasing is clear and easy to understand. It also offers a helpful follow-up question, demonstrating an attempt to engage the user further. The only minor deduction is for not using the exact wording from the expected answer, but the meaning is identical. |
+| 14 | How many symptoms are linked to Influenza? | According to the database, Influenza is associated with three key symptoms: Fever, Cough, and Fatigue. | Influenza has 3 symptoms: fever, cough, and fatigue. | 0.95 | The system answer is highly accurate and complete. It correctly identifies the three key symptoms of Influenza (Fever, Cough, and Fatigue) and presents them in a clear and concise manner, mirroring the expected answer perfectly. The response is entirely relevant to the question. Only a minor deduction is made for the slightly different phrasing. |
+| 15 | Which diseases show Fatigue as a symptom? | Based on the available information, Fatigue is a symptom associated with Influenza and Diabetes. | Influenza and Diabetes show fatigue as a symptom. | 0.85 | The system’s answer is factually correct – fatigue is indeed a symptom of both Influenza and Diabetes. It effectively covers the key aspects of the expected answer. The phrasing is slightly more verbose than the expected answer, but the core information is accurately presented. Therefore, a score of 0.85 reflects a high degree of accuracy and relevance. |
+| 16 | List all diseases with their symptoms. | Based on the available information, here’s what we know about diseases and their symptoms:<br><br>*   **Influenza:** One of the symptoms associated with Influenza is Fever. | Influenza: fever, cough, fatigue. Diabetes: fatigue, blurred vision. Hypertension: shortness of breath, chest pain. Asthma: shortness of breath, cough. Migraine: headache, nausea. | 0.60 | The system answer correctly identifies "Fever" as a symptom of Influenza. However, it fails to provide the other symptoms listed in the expected answer (cough, fatigue for Influenza; fatigue, blurred vision for Diabetes; shortness of breath, chest pain for Hypertension; shortness of breath, cough for Asthma; headache, nausea for Migraine). Therefore, it’s partially correct but lacks completeness, leading to a score of 0.6. It does directly address the question by providing information about influenza. |
+| 17 | What is the prevention method for Migraine? | Based on the information available, a key prevention method for migraines is stress management. Implementing strategies to manage stress can be beneficial in reducing the frequency and severity of migraine attacks. | Migraines can be prevented through stress management. | 0.90 | The system answer is highly accurate and relevant. It correctly identifies stress management as a key prevention method for migraines. It’s complete in that it directly states the core preventative measure. The language is clear and concise, mirroring the expected answer’s simplicity. A slight deduction (0.9 instead of 1.0) is made only because it’s a slightly more verbose response than the expected answer. |
+| 18 | What treatment is given for Hypertension? | Based on the information available, hypertension is associated with symptoms like shortness of breath and chest pain. However, this data doesn’t specify the treatments for hypertension itself. <br><br>It’s important to consult with a healthcare professional for appropriate treatment options, which typically include lifestyle changes (diet, exercise) and medications. | Hypertension is treated with antihypertensive drugs. | 0.65 | The system’s answer is partially correct and relevant. It accurately identifies symptoms associated with hypertension and correctly advises consulting a healthcare professional. However, it fails to provide the core, expected answer – the treatment for hypertension itself (antihypertensive drugs). While it mentions lifestyle changes, it doesn’t explicitly state the primary treatment method. Therefore, it’s not fully complete and receives a score reflecting partial correctness and relevance. |
+| 19 | Find diseases that have Headache as a symptom. | Based on the database results, headache is a symptom of Migraine. | Migraine has headache as a symptom. | 0.90 | The system’s answer is entirely correct and directly addresses the question. It accurately states that “Migraine has headache as a symptom,” mirroring the expected answer. There's no room for improvement in terms of factual accuracy or relevance. A score of 0.9 reflects a near-perfect response. |
+| 20 | Which disease is linked to Nausea? | Based on the information available, nausea is linked to Migraine. | Migraine is linked to nausea. | 0.80 | The system answer is factually correct – nausea is indeed linked to migraines. It covers the core information from the expected answer. The phrasing is slightly different ("nausea is linked to Migraine" vs. "Migraine is linked to nausea"), but the meaning is identical. Therefore, it’s highly relevant and accurate, deserving a high score. |
+| 21 | List the treatments for Hypertension. | Based on the information provided, the database currently lists symptoms associated with hypertension, rather than specific treatments. It indicates that shortness of breath and chest pain are symptoms related to hypertension. <br><br>It’s important to note that this list doesn’t include treatments for hypertension. If you are experiencing these symptoms or have been diagnosed with hypertension, it’s crucial to consult with a healthcare professional to discuss appropriate treatment options, which may include medication, lifestyle changes, and other therapies. | Hypertension is treated with antihypertensive drugs. | 0.60 | The system answer is partially correct. It accurately identifies that hypertension is associated with symptoms like shortness of breath and chest pain. However, it fails to provide the core, expected answer which is a direct statement about treatment ("Hypertension is treated with antihypertensive drugs"). While the disclaimer about consulting a healthcare professional is important and relevant, it doesn't fulfill the specific request for a concise treatment answer. Therefore, it receives a moderate score reflecting partial correctness and relevance but lacking completeness. |
+| 22 | What prevention methods are used for Influenza? | I couldn't find any information for your question. | Influenza prevention includes vaccination. | 0.20 | The system’s answer, “I couldn’t find any information for your question,” is technically correct in that it acknowledges a lack of information. However, it completely fails to address the question, which was about influenza prevention. While it doesn’t provide a correct answer, it doesn’t even attempt to do so. A score of 0.2 reflects a minimal acknowledgement of the query, but a significant lack of any relevant response. |
+| 23 | What symptoms are related to Migraine? | I couldn't find any information for your question. | Migraines are related to headaches and nausea. | 0.10 | The system’s answer, “I couldn’t find any information for your question,” is entirely unhelpful and doesn’t address the implied question (likely about migraines and their relationship to headaches and nausea). While technically correct in that it didn’t find information, it fails on all other criteria – correctness (it doesn’t provide an answer), completeness (it doesn’t offer any relevant information), and relevance (it doesn’t relate to the topic). A score of 0.1 reflects the minimal value it provides. |
+| 24 | How is Diabetes treated? | Based on the information available, the primary treatment for Diabetes is Insulin Therapy. | Diabetes is treated with insulin therapy. | 0.90 | The system answer is highly accurate and directly addresses the question about the primary treatment for diabetes. It states “Insulin Therapy” which is the correct primary treatment. The phrasing is slightly different from the expected answer ("Diabetes is treated with insulin therapy"), but the core information is conveyed accurately and completely. Therefore, a score of 0.9 reflects a very strong performance. |
+| 25 | Which diseases are prevented by a Healthy Diet? | According to the database, a healthy diet can help prevent several diseases. Specifically, it’s linked to the prevention of Diabetes and can also play a role in managing and potentially preventing Hypertension. | Diabetes is prevented by a healthy diet. | 0.85 | The system answer is largely correct and relevant. It accurately states the connection between a healthy diet and the prevention of Diabetes, and correctly identifies its role in managing Hypertension. While it could be more concise, it covers all the key points from the expected answer. The slight deduction is due to the somewhat verbose phrasing ("can also play a role in managing and potentially preventing"). |
+| 26 | List diseases that have Shortness of Breath as a symptom. | Based on the available information, here are some diseases that can cause shortness of breath:<br><br>*   **Hypertension:** Shortness of breath is a symptom of this condition.<br>*   **Asthma:** Shortness of breath is a common symptom of asthma.<br><br>Do you want me to explore other potential causes of shortness of breath, or would you like more details about these conditions? | Hypertension and Asthma have shortness of breath as a symptom. | 0.95 | The system answer is highly accurate and relevant. It correctly identifies hypertension and asthma as causes of shortness of breath. It’s complete in that it directly answers the implied question of potential causes. The language is clear and concise. A very minor deduction (0.05) is made because it could be slightly more succinct, but overall, it’s an excellent response. |
+| 27 | What are the common symptoms of Asthma? | Based on the information available, common symptoms of asthma include a cough and shortness of breath. | Asthma has symptoms of shortness of breath and cough. | 0.90 | The system’s answer is entirely correct and accurately lists common symptoms of asthma (cough and shortness of breath). It’s a complete and relevant response to the question. The wording is slightly different from the expected answer, but the core information is identical and accurate. |
+| 28 | Which diseases are linked to Cough and Fever? | Based on the information available, both cough and fever are symptoms associated with several diseases. Specifically, both cough and fever are common symptoms of Influenza. Additionally, cough is a symptom of Asthma. | Influenza is linked to both cough and fever. | 0.85 | The system answer is largely correct and relevant. It accurately identifies Influenza as a disease associated with both cough and fever. It also correctly notes that cough is a symptom of Asthma. While it could be slightly more concise, it covers all the key information present in the expected answer. The slight deduction is due to the somewhat verbose phrasing. |
+| 29 | What treatment does Influenza have? | The primary treatment for Influenza is Antiviral Medication. These medications can help reduce the severity and duration of your symptoms if taken early in the illness. | Influenza is treated with antiviral medication. | 0.90 | The system answer is highly accurate and relevant. It correctly identifies antiviral medication as the primary treatment for influenza and explains its purpose effectively. The language is clear and concise. The only minor deduction is for not explicitly stating "Influenza is treated with..." which is a slightly more direct phrasing of the expected answer, but the core information is perfectly conveyed. |
+| 30 | What prevention is recommended for Hypertension? | Based on the information available, regular exercise is recommended for the prevention of hypertension. Maintaining an active lifestyle can help manage and reduce your risk of developing high blood pressure. | Regular exercise is recommended for preventing hypertension. | 0.90 | The system answer is highly accurate and relevant. It correctly states that regular exercise is recommended for preventing hypertension. It also provides a helpful elaboration about maintaining an active lifestyle for management and risk reduction, which is a complete and relevant addition to the core recommendation. The response is clear, concise, and directly addresses the expected answer. |
+| 31 | Which disease has the symptom Dizziness? | I couldn't find any information for your question. | None of the diseases in the database have dizziness as a symptom. | 0.20 | The system’s answer is technically correct in that it states no diseases in the database have dizziness as a symptom. However, it fails to provide any context or explanation, which is crucial for a medical question answering system. The expected answer offers a more informative response, stating *why* no matches were found. The system’s response is simply a negative result without any supporting information, significantly reducing its usefulness and therefore the score. |
+| 32 | List the treatments available for Migraine. | Based on the available information, the primary treatment listed for migraines is “Pain Relievers.” This suggests that over-the-counter or prescription pain medications are a key part of managing migraine symptoms. <br><br>It’s important to note that this is a simplified overview, and a full migraine treatment plan often involves a combination of approaches. | Migraines are treated with pain relievers. | 0.85 | The system answer is largely correct and relevant. It accurately identifies “Pain Relievers” as a primary treatment for migraines. It also correctly notes that this is a simplified overview and that a full treatment plan is more complex. The answer directly addresses the expected answer. The only minor deduction is due to the slightly verbose phrasing ("Pain Relievers" instead of simply "pain relievers"). |
+| 33 | What are the prevention methods for Diabetes? | I couldn't find any information for your question. | Diabetes can be prevented with a healthy diet. | 0.10 | The system’s answer, “I couldn’t find any information for your question,” is entirely unhelpful and doesn’t address the implied question about diabetes prevention. While technically correct in that it didn’t find information, it provides no useful information whatsoever. It receives a very low score because it fails on all three criteria: it’s factually correct in that it didn’t find anything, but completely irrelevant and incomplete. |
+| 34 | How many diseases have the symptom Chest Pain? | Based on the database results, chest pain is a symptom associated with Hypertension. | One disease (Hypertension) has chest pain as a symptom. | 0.80 | The system’s answer is factually correct – hypertension is indeed associated with chest pain. It covers the core aspect of the expected answer by stating that “one disease (Hypertension) has chest pain as a symptom.” The answer is relevant to the question and provides a concise, accurate response. A slight deduction (0.2) is made because it could be slightly more concise, but the information is presented correctly. |
+| 35 | Which diseases can be prevented by Regular Exercise? | According to the database, regular exercise can help prevent hypertension. Additionally, it’s noted that healthy diet and vaccination can help prevent influenza. | Hypertension can be prevented by regular exercise. | 0.80 | The system answer is largely correct and relevant. It accurately states that regular exercise can prevent hypertension, which is the core of the expected answer. The inclusion of information about influenza prevention is a bonus and demonstrates broader knowledge, though not explicitly requested. Therefore, it’s a very good response. |
+| 36 | What symptom is most common in Influenza? | According to the database, the most common symptom associated with Influenza is fever. Other frequently experienced symptoms include cough and fatigue. | According to the prevalence data, fever is the most common symptom in Influenza with a prevalence of 90. | 0.75 | The system answer is largely correct and relevant. It accurately identifies fever as the most common symptom of influenza and mentions cough and fatigue, which are also frequently associated. However, it lacks the crucial detail about the *prevalence* of fever (90%), which is a key element of the expected answer. While the system correctly identifies the symptom, it doesn't provide the quantitative data that strengthens the answer. Therefore, it’s a good response but not a perfect one. |
+| 37 | Which diseases have Sweating as a symptom? | I couldn't find any information for your question. | None of the diseases in the database have sweating as a symptom. | 0.20 | The system’s answer is technically correct in that it states there’s no information found. However, it fails to provide the *type* of information expected – a statement about the absence of sweating as a symptom across the database. It doesn’t offer any helpful context or a reasoned explanation. Therefore, it receives a low score as it doesn’t fulfill the requirements of a useful medical answer. |
 
 ## Detailed Results
 
@@ -61,14 +61,12 @@ Generated: 2025-03-22 01:58:28
 
 **Query**:
 ```cypher
-MATCH (d:Disease)-[:HAS_SYMPTOM]->(s:Symptom)
-WHERE d.name = "Influenza"
-RETURN s.name AS Symptom
+MATCH (d:Disease)-[r:HAS_SYMPTOM]->(s:Symptom) WHERE toLower(d.name) = toLower("influenza") RETURN s.name AS SymptomName, r.name AS RelationshipName, d.name AS DiseaseName
 ```
 
 **System Answer**:
 ```
-Okay, here’s a breakdown of the symptoms associated with Influenza:
+Okay, here’s what we know about the symptoms of Influenza:
 
 The most common symptoms of Influenza include fever, cough, and fatigue.
 ```
@@ -80,7 +78,7 @@ The symptoms of Influenza are fever, cough, and fatigue.
 
 **Score**: 0.95
 
-**Explanation**: The system answer is highly accurate and complete. It correctly identifies the three most common symptoms of influenza (fever, cough, and fatigue). The phrasing is slightly different from the expected answer, but the core information is identical and accurately presented. Therefore, it receives a near-perfect score.
+**Explanation**: The system answer is highly accurate and complete. It correctly identifies the three most common symptoms of influenza (fever, cough, and fatigue). The phrasing is slightly different from the expected answer, but the core information is identical and factually correct. Therefore, it receives a near-perfect score.
 
 ---
 
@@ -93,14 +91,14 @@ The symptoms of Influenza are fever, cough, and fatigue.
 **Query**:
 ```cypher
 MATCH (d:Disease {name: "Diabetes"})-[:HAS_TREATMENT]->(t:Treatment)
-RETURN t.name AS TreatmentName, COLLECT(t.description) AS TreatmentDescriptions
+RETURN t.name AS TreatmentName
 ```
 
 **System Answer**:
 ```
-Currently, the primary treatment for Diabetes is Insulin Therapy. This involves using insulin to manage blood sugar levels. 
+Based on the available information, the primary treatment for Diabetes is Insulin Therapy. 
 
-Do you want me to elaborate on Insulin Therapy or perhaps explore other potential treatment approaches for Diabetes?
+Do you want me to elaborate on Insulin Therapy or perhaps explore other potential treatment options for Diabetes?
 ```
 
 **Expected Answer**:
@@ -108,9 +106,9 @@ Do you want me to elaborate on Insulin Therapy or perhaps explore other potentia
 Diabetes is treated with insulin therapy.
 ```
 
-**Score**: 0.85
+**Score**: 0.90
 
-**Explanation**: The system answer is largely correct and relevant. It accurately identifies insulin therapy as the primary treatment for diabetes and briefly explains its purpose. It’s missing the succinctness of the expected answer, but the core information is present and accurate. A slight deduction is made for the slightly verbose phrasing.
+**Explanation**: The system answer is entirely correct and directly addresses the question by stating the primary treatment for diabetes is insulin therapy. It’s a concise and accurate response. A slight deduction (0.9 instead of 1.0) is made because it doesn’t offer any further detail, which could be beneficial in a comprehensive answer.
 
 ---
 
@@ -122,13 +120,16 @@ Diabetes is treated with insulin therapy.
 
 **Query**:
 ```cypher
-MATCH (d:Disease {name: "asthma"})-[:HAS_PREVENTION]->(p:Prevention)
-RETURN p.name AS PreventionMethod
+MATCH (d:Disease)-[:HAS_PREVENTION]->(p:Prevention) WHERE toLower(d.name) = toLower("asthma") RETURN p.name AS PreventionName
 ```
 
 **System Answer**:
 ```
-I couldn't find any information for your question.
+Okay, here’s what we know about asthma prevention based on the available information:
+
+One key prevention method for asthma is to **avoid allergens**. Identifying and minimizing your exposure to things like dust mites, pollen, mold, and pet dander can significantly reduce your risk of developing asthma or triggering symptoms if you already have it. 
+
+Do you want me to elaborate on any specific allergen or explore other potential preventative measures?
 ```
 
 **Expected Answer**:
@@ -136,9 +137,9 @@ I couldn't find any information for your question.
 Asthma can be prevented by avoiding allergens.
 ```
 
-**Score**: 0.10
+**Score**: 0.95
 
-**Explanation**: The system provided an answer ("I couldn't find any information for your question."), which is technically correct in that it acknowledges a lack of information. However, it fails to provide any relevant information, completely missing the opportunity to address the question about preventing asthma. It receives a very low score because it doesn't fulfill the basic requirement of providing an answer, even a negative one, and doesn't demonstrate any understanding of the topic.
+**Explanation**: The system’s answer is highly accurate and relevant. It correctly identifies the key preventative measure – avoiding allergens – and provides specific examples (dust mites, pollen, mold, pet dander). The concluding question inviting further elaboration demonstrates a helpful and interactive approach. It’s almost a perfect representation of the expected answer.
 
 ---
 
@@ -150,14 +151,18 @@ Asthma can be prevented by avoiding allergens.
 
 **Query**:
 ```cypher
-MATCH (d:Disease)-[:HAS_SYMPTOM]->(s:Symptom)
-WHERE d.name = "hypertension"
-RETURN s.name AS SymptomName
+MATCH (d:Disease)-[r:HAS_SYMPTOM]->(s:Symptom) WHERE toLower(d.name) = toLower("hypertension") RETURN s.name AS SymptomName, r.name AS RelationshipName, d.name AS DiseaseName
 ```
 
 **System Answer**:
 ```
-I couldn't find any information for your question.
+Okay, here’s what we know about the symptoms associated with hypertension (high blood pressure):
+
+According to the information available, some symptoms of hypertension include shortness of breath and chest pain. 
+
+**Important Note:** It’s crucial to remember that hypertension often has no noticeable symptoms, which is why it’s called the “silent killer.” Regular blood pressure checks are essential for early detection and management. 
+
+**Disclaimer:** *I am an AI Chatbot and not a medical professional. This information is for general knowledge and informational purposes only, and does not constitute medical advice. It is essential to consult with a qualified healthcare provider for any health concerns or before making any decisions related to your health or treatment.*
 ```
 
 **Expected Answer**:
@@ -165,9 +170,9 @@ I couldn't find any information for your question.
 Hypertension is associated with shortness of breath and chest pain.
 ```
 
-**Score**: 0.00
+**Score**: 0.95
 
-**Explanation**: The system’s response, “I couldn’t find any information for your question,” indicates a complete failure to address the query. The expected answer provides a specific, medically relevant association (hypertension and symptoms). The system provided no information whatsoever, failing on all three criteria (correctness, completeness, and relevance).
+**Explanation**: The system answer is highly accurate and relevant. It correctly identifies shortness of breath and chest pain as symptoms of hypertension. The inclusion of the "silent killer" disclaimer and the importance of regular checks adds significant value and demonstrates responsible AI behavior. It fully covers the expected answer.
 
 ---
 
@@ -179,13 +184,12 @@ Hypertension is associated with shortness of breath and chest pain.
 
 **Query**:
 ```cypher
-MATCH (s:Symptom {name: "Fever"})-[:HAS_SYMPTOM]->(d:Disease)
-RETURN d.name AS Disease, COLLECT(d.name) AS Symptoms
+MATCH (d:Disease)-[r:HAS_SYMPTOM]->(s:Symptom) WHERE toLower(s.name) = toLower("fever") RETURN s.name AS SymptomName, r.name AS RelationshipName, d.name AS DiseaseName
 ```
 
 **System Answer**:
 ```
-I couldn't find any information for your question.
+Based on the information available, Fever is a symptom of Influenza.
 ```
 
 **Expected Answer**:
@@ -193,9 +197,9 @@ I couldn't find any information for your question.
 Influenza has fever as a symptom.
 ```
 
-**Score**: 0.10
+**Score**: 0.90
 
-**Explanation**: The system provided an answer ("I couldn't find any information for your question."), which is technically correct in that it acknowledges a lack of information. However, it completely fails to address the question, which was about the symptom of influenza. It receives a very low score because it doesn't offer any relevant information and demonstrates a failure to understand the query.
+**Explanation**: The system answer is entirely correct and directly addresses the question. It accurately states that fever is a symptom of influenza. There's nothing missing, and the phrasing is clear and concise. A score of 0.9 reflects a very high degree of accuracy and relevance.
 
 ---
 
@@ -207,17 +211,14 @@ Influenza has fever as a symptom.
 
 **Query**:
 ```cypher
-MATCH (d:Disease {name: "Migraine"})-[:HAS_TREATMENT]->(t:Treatment)
-RETURN t.name AS TreatmentName, t.description AS TreatmentDescription
-OPTIONAL MATCH (d:Disease {name: "Headache"})-[:HAS_TREATMENT]->(t:Treatment)
-RETURN t.name AS TreatmentName, t.description AS TreatmentDescription
+MATCH (d:Disease)-[r:HAS_SYMPTOM]->(s:Symptom) WHERE toLower(d.name) = toLower("migraine") RETURN s.name AS SymptomName, r.name AS RelationshipName, d.name AS DiseaseName
 ```
 
 **System Answer**:
 ```
-Error: {code: Neo.ClientError.Statement.SyntaxError} {message: RETURN can only be used at the end of the query. (line 2, column 1 (offset: 69))
-"RETURN t.name AS TreatmentName, t.description AS TreatmentDescription"
- ^}
+Based on the information available, treatments for Migraine often address the associated symptoms. Migraine is frequently accompanied by symptoms like nausea. Treatment strategies for Migraine typically focus on managing these symptoms alongside the headache itself. 
+
+It’s important to note that this is a simplified overview, and a comprehensive treatment plan for Migraine should be developed in consultation with a healthcare professional.
 ```
 
 **Expected Answer**:
@@ -225,9 +226,9 @@ Error: {code: Neo.ClientError.Statement.SyntaxError} {message: RETURN can only b
 Migraines are treated with pain relievers.
 ```
 
-**Score**: 0.00
+**Score**: 0.60
 
-**Explanation**: Query execution failed
+**Explanation**: The system’s answer is partially correct and relevant. It correctly identifies that treatments for migraines often focus on managing associated symptoms like nausea. However, it doesn’t provide the most direct and concise answer to the expected “Migraines are treated with pain relievers.” While the system acknowledges treatment, it lacks the core factual statement. The disclaimer about consulting a healthcare professional is also relevant but doesn’t contribute to the directness of the answer.
 
 ---
 
@@ -239,13 +240,15 @@ Migraines are treated with pain relievers.
 
 **Query**:
 ```cypher
-MATCH (d:Disease {name: "Influenza"})-[:HAS_PREVENTION]->(p:Prevention)
-RETURN p.name AS PreventionMethod
+MATCH (d:Disease), (s:Symptom)
+WHERE toLower(d.name) = toLower("influenza")
+AND toLower(s.name) IN ['vaccination', 'shot']
+RETURN s.name AS PreventionMethod, d.name AS DiseaseName
 ```
 
 **System Answer**:
 ```
-The best way to prevent Influenza is through vaccination. Vaccines are available to help protect you from getting the flu.
+I couldn't find any information for your question.
 ```
 
 **Expected Answer**:
@@ -253,9 +256,9 @@ The best way to prevent Influenza is through vaccination. Vaccines are available
 Influenza can be prevented through vaccination.
 ```
 
-**Score**: 0.95
+**Score**: 0.20
 
-**Explanation**: The system answer is highly accurate and relevant. It correctly states that vaccination is the best way to prevent influenza and explains the purpose of vaccines. It covers all the key elements of the expected answer. A slight deduction (0.05) is made because it’s a slightly verbose phrasing compared to the more concise expected answer.
+**Explanation**: The system’s answer, “I couldn’t find any information for your question,” is technically correct in that it acknowledges a lack of information. However, it provides no useful information whatsoever. While it’s relevant to the question (since the question asks about influenza prevention), it fails on both correctness and completeness. A better answer would have offered at least a basic preventative measure. Therefore, it receives a very low score reflecting its lack of helpfulness.
 
 ---
 
@@ -267,16 +270,16 @@ Influenza can be prevented through vaccination.
 
 **Query**:
 ```cypher
-MATCH (d:Disease)-[:HAS_SYMPTOM]->(s:Symptom)
-RETURN s.name AS Symptom, COLLECT(d.name) AS Diseases
-WHERE d.name = 'Diabetes' OR s.name IN ['blurred vision', 'excessive thirst', 'frequent urination', 'slow-healing sores', 'fatigue']
+MATCH (d:Disease)-[r:HAS_SYMPTOM]->(s:Symptom) WHERE toLower(d.name) = toLower("diabetes") RETURN s.name AS SymptomName, r.name AS RelationshipName, d.name AS DiseaseName
 ```
 
 **System Answer**:
 ```
-Error: {code: Neo.ClientError.Statement.SyntaxError} {message: Invalid input 'WHERE': expected 'FOREACH', ',', 'ORDER BY', 'CALL', 'CREATE', 'LOAD CSV', 'DELETE', 'DETACH', 'FINISH', 'INSERT', 'LIMIT', 'MATCH', 'MERGE', 'NODETACH', 'OFFSET', 'OPTIONAL', 'REMOVE', 'RETURN', 'SET', 'SKIP', 'UNION', 'UNWIND', 'USE', 'WITH' or <EOF> (line 3, column 1 (offset: 100))
-"WHERE d.name = 'Diabetes' OR s.name IN ['blurred vision', 'excessive thirst', 'frequent urination', 'slow-healing sores', 'fatigue']"
- ^}
+Okay, here’s a list of symptoms associated with Diabetes, based on the information available:
+
+Some common symptoms of Diabetes include fatigue and blurred vision. 
+
+Do you want me to provide more details about these symptoms or perhaps explore other symptoms associated with Diabetes?
 ```
 
 **Expected Answer**:
@@ -284,9 +287,9 @@ Error: {code: Neo.ClientError.Statement.SyntaxError} {message: Invalid input 'WH
 Diabetes has symptoms of fatigue and blurred vision.
 ```
 
-**Score**: 0.00
+**Score**: 0.85
 
-**Explanation**: Query execution failed
+**Explanation**: The system’s answer is largely correct and relevant. It accurately lists “fatigue and blurred vision” as symptoms of diabetes. It also offers a helpful follow-up question, indicating an attempt to provide more information. The only minor deduction is that it doesn’t explicitly state “Diabetes has symptoms of…” which would make it slightly more concise and directly aligned with the expected answer’s phrasing.
 
 ---
 
@@ -298,14 +301,17 @@ Diabetes has symptoms of fatigue and blurred vision.
 
 **Query**:
 ```cypher
-MATCH (d:Disease)-[:HAS_SYMPTOM]->(s:Symptom)
-WHERE s.name = "cough"
-RETURN d.name AS Disease, COLLECT(s.name) AS Symptoms
+MATCH (d:Disease)-[r:HAS_SYMPTOM]->(s:Symptom) WHERE toLower(s.name) = toLower("cough") RETURN s.name AS SymptomName, r.name AS RelationshipName, d.name AS DiseaseName
 ```
 
 **System Answer**:
 ```
-I couldn't find any information for your question.
+Okay, here’s a list of diseases that have cough as a symptom, based on the available data:
+
+*   **Influenza:** Cough is a symptom of Influenza.
+*   **Asthma:** Cough is also a symptom of Asthma.
+
+Do you want me to search for more diseases with cough as a symptom?
 ```
 
 **Expected Answer**:
@@ -313,9 +319,9 @@ I couldn't find any information for your question.
 Influenza and Asthma have cough as a symptom.
 ```
 
-**Score**: 0.20
+**Score**: 0.95
 
-**Explanation**: The system’s answer, “I couldn’t find any information for your question,” indicates a failure to provide any relevant information. While technically correct in that it didn’t find *specific* information, it doesn’t fulfill the requirement of providing a factual answer. The expected answer directly addresses the implied question (the relationship between Influenza and Asthma) with a relevant symptom. The system’s response is entirely irrelevant and therefore scores very low.
+**Explanation**: The system’s answer is highly accurate and complete. It correctly identifies Influenza and Asthma as diseases with cough as a symptom. The phrasing is clear and concise, directly addressing the question. The slight deduction (5%) is only for the slightly verbose introductory phrase "Okay, here’s a list of diseases..." which isn't strictly necessary for the core information.
 
 ---
 
@@ -327,15 +333,14 @@ Influenza and Asthma have cough as a symptom.
 
 **Query**:
 ```cypher
-MATCH (d:Disease {name: "Diabetes"})-[:HAS_PREVENTION]->(p:Prevention)
-RETURN p.name AS PreventionName
+MATCH (d:Disease)-[:HAS_PREVENTION]->(p:Prevention) WHERE toLower(d.name) = toLower("diabetes") RETURN p.name AS PreventionName, d.name AS DiseaseName
 ```
 
 **System Answer**:
 ```
-Okay, let's talk about preventing Diabetes. Based on the information we have, a key prevention method is maintaining a **Healthy Diet**. Focusing on a balanced and nutritious diet is a significant step in reducing your risk. 
+Okay, let's talk about preventing Diabetes. Based on the information available, a **Healthy Diet** is a key prevention method. Maintaining a healthy diet is important in reducing your risk of developing Diabetes. 
 
-Do you want to explore other aspects of diabetes prevention, such as exercise or lifestyle changes?
+Do you want to explore specific dietary recommendations or other prevention strategies for Diabetes?
 ```
 
 **Expected Answer**:
@@ -345,7 +350,7 @@ Diabetes can be prevented with a healthy diet.
 
 **Score**: 0.85
 
-**Explanation**: The system’s answer is largely correct and relevant. It accurately identifies “maintaining a Healthy Diet” as a key prevention method for diabetes. It also provides a brief, supportive explanation. While it doesn’t cover other aspects like exercise or lifestyle changes as requested in the expected answer, it fulfills the core requirement of stating a key preventative measure. Therefore, it receives a high score, reflecting a good response to the question.
+**Explanation**: The system’s answer is largely correct and relevant. It accurately identifies a “Healthy Diet” as a key prevention method for Diabetes. It also provides a brief, understandable explanation. While it could be more comprehensive, it fulfills the core requirements of the expected answer. A slight deduction is made because it doesn’t explicitly state “Diabetes can be prevented” as the expected answer does.
 
 ---
 
@@ -358,7 +363,7 @@ Diabetes can be prevented with a healthy diet.
 **Query**:
 ```cypher
 MATCH (d:Disease {name: "asthma"})-[:HAS_TREATMENT]->(t:Treatment)
-RETURN t.name AS TreatmentName, t.description AS TreatmentDescription
+RETURN t.name AS TreatmentName
 ```
 
 **System Answer**:
@@ -373,26 +378,24 @@ Asthma is treated with bronchodilators.
 
 **Score**: 0.10
 
-**Explanation**: The system’s answer, “I couldn’t find any information for your question,” is entirely irrelevant and provides no useful information. While technically correct in that it didn’t find *any* information, it fails to address the implied question about asthma treatment. A score of 0.1 reflects a minimal acknowledgement of the request, but a complete failure to provide a relevant answer.
+**Explanation**: The system’s answer, “I couldn’t find any information for your question,” is entirely irrelevant and provides no useful information. While technically correct in that it didn’t find *any* information, it fails to address the implied question about asthma treatment. A score of 0.1 reflects a minimal acknowledgement of the request, but a complete failure to provide a relevant response.
 
 ---
 
 ### Question 12: Which disease uses Vaccination as prevention?
 
-**Entities**: Vaccination
+**Entities**: Vaccination, Disease
 
 **Query Type**: prevention
 
 **Query**:
 ```cypher
-MATCH (d:Disease)-[:HAS_PREVENTION]->(p:Prevention)
-WHERE p.name = "Vaccination"
-RETURN p.name AS PreventionMethod, COLLECT(d.name) AS AffectedDiseases
+MATCH (d:Disease)-[r:HAS_PREVENTION]->(p:Prevention) WHERE toLower(d.name) = toLower("vaccination") RETURN p.name AS PreventionName, d.name AS DiseaseName
 ```
 
 **System Answer**:
 ```
-According to the database, **Influenza** is a disease that utilizes vaccination as a preventative measure. Vaccination is the method used to protect against it.
+I couldn't find any information for your question.
 ```
 
 **Expected Answer**:
@@ -400,9 +403,9 @@ According to the database, **Influenza** is a disease that utilizes vaccination 
 Influenza uses vaccination as prevention.
 ```
 
-**Score**: 0.85
+**Score**: 0.10
 
-**Explanation**: The system answer is largely correct and relevant. It accurately states that Influenza utilizes vaccination for prevention. While the phrasing is slightly more verbose than the expected answer, it conveys the same core information. There's no factual error, and it directly addresses the question. A slight deduction is made for the slightly less concise wording.
+**Explanation**: The system’s answer, “I couldn’t find any information for your question,” is entirely unhelpful and doesn’t address the question at all. While technically correct in that it didn’t find information, it fails to provide any relevant information or acknowledge the query. It receives a very low score because it doesn’t fulfill any of the criteria for a useful answer.
 
 ---
 
@@ -414,14 +417,16 @@ Influenza uses vaccination as prevention.
 
 **Query**:
 ```cypher
-MATCH (d:Disease)-[:HAS_SYMPTOM]->(s:Symptom)
-WHERE s.name = "asthma"
-RETURN s.name AS Symptom, COLLECT(d.name) AS Diseases
+MATCH (d:Disease)-[r:HAS_SYMPTOM]->(s:Symptom) WHERE toLower(d.name) = toLower("asthma") RETURN s.name AS SymptomName, r.name AS RelationshipName, d.name AS DiseaseName
 ```
 
 **System Answer**:
 ```
-I couldn't find any information for your question.
+Okay, here’s what we know about the symptoms of asthma:
+
+Common symptoms of asthma include a cough and shortness of breath. 
+
+Do you want to know more about these symptoms or perhaps explore other aspects of asthma?
 ```
 
 **Expected Answer**:
@@ -429,9 +434,9 @@ I couldn't find any information for your question.
 Asthma has symptoms of shortness of breath and cough.
 ```
 
-**Score**: 0.10
+**Score**: 0.90
 
-**Explanation**: The system’s answer, “I couldn’t find any information for your question,” is entirely unhelpful and doesn’t address the implied question about asthma symptoms. While technically correct in that it didn’t find information, it fails on all other criteria – correctness (it doesn’t provide any information), completeness (it doesn’t offer any relevant details), and relevance (it doesn’t answer the question). A score of 0.1 reflects the minimal value it provides simply because it acknowledges the question was attempted.
+**Explanation**: The system’s answer is highly accurate and relevant. It correctly identifies the key symptoms of asthma – shortness of breath and cough. The phrasing is clear and easy to understand. It also offers a helpful follow-up question, demonstrating an attempt to engage the user further. The only minor deduction is for not using the exact wording from the expected answer, but the meaning is identical.
 
 ---
 
@@ -443,14 +448,12 @@ Asthma has symptoms of shortness of breath and cough.
 
 **Query**:
 ```cypher
-MATCH (d:Disease)-[:HAS_SYMPTOM]->(s:Symptom)
-WHERE d.name = "Influenza"
-RETURN s.name AS Symptom
+MATCH (d:Disease)-[r:HAS_SYMPTOM]->(s:Symptom) WHERE toLower(d.name) = toLower("influenza") RETURN s.name AS SymptomName, r.name AS RelationshipName, d.name AS DiseaseName
 ```
 
 **System Answer**:
 ```
-According to the database, Influenza is associated with several symptoms. These include fever, cough, and fatigue.
+According to the database, Influenza is associated with three key symptoms: Fever, Cough, and Fatigue.
 ```
 
 **Expected Answer**:
@@ -458,9 +461,9 @@ According to the database, Influenza is associated with several symptoms. These 
 Influenza has 3 symptoms: fever, cough, and fatigue.
 ```
 
-**Score**: 0.85
+**Score**: 0.95
 
-**Explanation**: The system answer is largely correct and relevant. It accurately identifies the three key symptoms associated with Influenza (fever, cough, and fatigue). The phrasing is slightly verbose ("According to the database, Influenza is associated with several symptoms"), but the core information is presented correctly. Therefore, it receives a high score reflecting its accuracy and direct response to the implied question.
+**Explanation**: The system answer is highly accurate and complete. It correctly identifies the three key symptoms of Influenza (Fever, Cough, and Fatigue) and presents them in a clear and concise manner, mirroring the expected answer perfectly. The response is entirely relevant to the question. Only a minor deduction is made for the slightly different phrasing.
 
 ---
 
@@ -472,21 +475,12 @@ Influenza has 3 symptoms: fever, cough, and fatigue.
 
 **Query**:
 ```cypher
-MATCH (d:Disease)-[:HAS_SYMPTOM]->(s:Symptom)
-WHERE s.name = "Fatigue"
-RETURN d.name AS DiseaseName, COLLECT(s.name) AS Symptoms
+MATCH (d:Disease)-[r:HAS_SYMPTOM]->(s:Symptom) WHERE toLower(s.name) = toLower("fatigue") RETURN s.name AS SymptomName, r.name AS RelationshipName, d.name AS DiseaseName
 ```
 
 **System Answer**:
 ```
-Okay, here’s a breakdown of diseases where fatigue is a symptom, based on the available information:
-
-**Fatigue** can be a symptom of several conditions. According to the database, it’s associated with:
-
-*   **Influenza:** Fatigue is a common symptom of the flu.
-*   **Diabetes:** Fatigue is also frequently reported as a symptom of diabetes.
-
-Do you want me to elaborate on any of these diseases or perhaps search for other conditions that include fatigue as a symptom?
+Based on the available information, Fatigue is a symptom associated with Influenza and Diabetes.
 ```
 
 **Expected Answer**:
@@ -494,9 +488,9 @@ Do you want me to elaborate on any of these diseases or perhaps search for other
 Influenza and Diabetes show fatigue as a symptom.
 ```
 
-**Score**: 0.95
+**Score**: 0.85
 
-**Explanation**: The system’s answer is highly accurate and relevant. It correctly identifies Influenza and Diabetes as diseases associated with fatigue, as stated in the expected answer. The response is clear, concise, and offers further options for elaboration or searching, demonstrating a helpful and informative approach. The score is slightly reduced (only 0.95) to account for the minor possibility of a slight nuance in the expected answer's phrasing.
+**Explanation**: The system’s answer is factually correct – fatigue is indeed a symptom of both Influenza and Diabetes. It effectively covers the key aspects of the expected answer. The phrasing is slightly more verbose than the expected answer, but the core information is accurately presented. Therefore, a score of 0.85 reflects a high degree of accuracy and relevance.
 
 ---
 
@@ -508,21 +502,14 @@ Influenza and Diabetes show fatigue as a symptom.
 
 **Query**:
 ```cypher
-MATCH (d:Disease)-[:HAS_SYMPTOM]->(s:Symptom)
-RETURN s.name AS Symptom, COLLECT(d.name) AS Diseases
+MATCH (d:Disease)-[r:HAS_SYMPTOM]->(s:Symptom) WHERE toLower(s.name) = toLower("fever") RETURN s.name AS SymptomName, r.name AS RelationshipName, d.name AS DiseaseName
 ```
 
 **System Answer**:
 ```
-Here’s a breakdown of diseases and their associated symptoms based on the available data:
+Based on the available information, here’s what we know about diseases and their symptoms:
 
-*   **Influenza:** Symptoms include Fever, Cough, and Fatigue.
-*   **Asthma:** Symptoms include Cough and Shortness of Breath.
-*   **Diabetes:** Symptoms include Fatigue and Blurred Vision.
-*   **Migraine:** Symptoms include Headache and Nausea.
-*   **Hypertension:** Symptoms include Shortness of Breath and Chest Pain.
-
-Please note that this information is based solely on the provided database results and may not represent a complete list of symptoms or diseases.
+*   **Influenza:** One of the symptoms associated with Influenza is Fever.
 ```
 
 **Expected Answer**:
@@ -530,9 +517,9 @@ Please note that this information is based solely on the provided database resul
 Influenza: fever, cough, fatigue. Diabetes: fatigue, blurred vision. Hypertension: shortness of breath, chest pain. Asthma: shortness of breath, cough. Migraine: headache, nausea.
 ```
 
-**Score**: 0.95
+**Score**: 0.60
 
-**Explanation**: The system answer is highly accurate and complete. It correctly lists the symptoms associated with each disease as provided in the expected answer. The formatting is also consistent and clear. The inclusion of the disclaimer about the data source is a positive addition, demonstrating responsible AI behavior. The only minor deduction is for not using the exact wording from the expected answer, but the core information is perfectly conveyed.
+**Explanation**: The system answer correctly identifies "Fever" as a symptom of Influenza. However, it fails to provide the other symptoms listed in the expected answer (cough, fatigue for Influenza; fatigue, blurred vision for Diabetes; shortness of breath, chest pain for Hypertension; shortness of breath, cough for Asthma; headache, nausea for Migraine). Therefore, it’s partially correct but lacks completeness, leading to a score of 0.6. It does directly address the question by providing information about influenza.
 
 ---
 
@@ -545,14 +532,12 @@ Influenza: fever, cough, fatigue. Diabetes: fatigue, blurred vision. Hypertensio
 **Query**:
 ```cypher
 MATCH (d:Disease {name: "Migraine"})-[:HAS_PREVENTION]->(p:Prevention)
-RETURN p.name AS PreventionMethod
+RETURN p.name AS PreventionName
 ```
 
 **System Answer**:
 ```
-Okay, let's talk about migraine prevention. Based on the information available, a key method is **stress management**. Managing stress can be a really important part of preventing migraine attacks. 
-
-Do you want to explore other potential prevention strategies as well?
+Based on the information available, a key prevention method for migraines is stress management. Implementing strategies to manage stress can be beneficial in reducing the frequency and severity of migraine attacks.
 ```
 
 **Expected Answer**:
@@ -560,9 +545,9 @@ Do you want to explore other potential prevention strategies as well?
 Migraines can be prevented through stress management.
 ```
 
-**Score**: 0.85
+**Score**: 0.90
 
-**Explanation**: The system’s answer is largely correct and relevant. It accurately identifies “stress management” as a key prevention strategy for migraines. It’s a complete answer to the expected response. The language is also appropriate and helpful. A slight deduction (0.15) is made because it’s a very basic response and doesn’t offer any further elaboration or acknowledge other potential preventative measures, even though the prompt asks if the system wants to explore others.
+**Explanation**: The system answer is highly accurate and relevant. It correctly identifies stress management as a key prevention method for migraines. It’s complete in that it directly states the core preventative measure. The language is clear and concise, mirroring the expected answer’s simplicity. A slight deduction (0.9 instead of 1.0) is made only because it’s a slightly more verbose response than the expected answer.
 
 ---
 
@@ -574,13 +559,14 @@ Migraines can be prevented through stress management.
 
 **Query**:
 ```cypher
-MATCH (d:Disease {name: "hypertension"})-[:HAS_TREATMENT]->(t:Treatment)
-RETURN t.name AS TreatmentName, t.description AS TreatmentDescription
+MATCH (d:Disease)-[r:HAS_SYMPTOM]->(s:Symptom) WHERE toLower(d.name) = toLower("hypertension") RETURN s.name AS SymptomName, r.name AS RelationshipName, d.name AS DiseaseName
 ```
 
 **System Answer**:
 ```
-I couldn't find any information for your question.
+Based on the information available, hypertension is associated with symptoms like shortness of breath and chest pain. However, this data doesn’t specify the treatments for hypertension itself. 
+
+It’s important to consult with a healthcare professional for appropriate treatment options, which typically include lifestyle changes (diet, exercise) and medications.
 ```
 
 **Expected Answer**:
@@ -588,9 +574,9 @@ I couldn't find any information for your question.
 Hypertension is treated with antihypertensive drugs.
 ```
 
-**Score**: 0.20
+**Score**: 0.65
 
-**Explanation**: The system’s answer, “I couldn’t find any information for your question,” is technically correct in that it acknowledges a lack of information. However, it doesn’t provide any useful information or address the underlying medical question. It receives a low score because it fails to fulfill the basic requirement of providing a relevant answer, even if it correctly identifies a lack of data. It’s a placeholder response and doesn’t demonstrate any understanding of the query.
+**Explanation**: The system’s answer is partially correct and relevant. It accurately identifies symptoms associated with hypertension and correctly advises consulting a healthcare professional. However, it fails to provide the core, expected answer – the treatment for hypertension itself (antihypertensive drugs). While it mentions lifestyle changes, it doesn’t explicitly state the primary treatment method. Therefore, it’s not fully complete and receives a score reflecting partial correctness and relevance.
 
 ---
 
@@ -602,13 +588,12 @@ Hypertension is treated with antihypertensive drugs.
 
 **Query**:
 ```cypher
-MATCH (s:Symptom {name: "headache"})-[:HAS_SYMPTOM]->(d:Disease)
-RETURN d.name AS Disease, COLLECT(d.name) AS Symptoms
+MATCH (d:Disease)-[r:HAS_SYMPTOM]->(s:Symptom) WHERE toLower(s.name) = toLower("headache") RETURN s.name AS SymptomName, r.name AS RelationshipName, d.name AS DiseaseName
 ```
 
 **System Answer**:
 ```
-I couldn't find any information for your question.
+Based on the database results, headache is a symptom of Migraine.
 ```
 
 **Expected Answer**:
@@ -616,9 +601,9 @@ I couldn't find any information for your question.
 Migraine has headache as a symptom.
 ```
 
-**Score**: 0.10
+**Score**: 0.90
 
-**Explanation**: The system’s answer, “I couldn’t find any information for your question,” is entirely unhelpful and doesn’t address the question at all. While technically correct in that it didn’t find information, it fails to provide any relevant information. It receives a very low score because it doesn’t demonstrate any understanding or attempt to answer the query, and completely misses the expected factual response about migraine symptoms.
+**Explanation**: The system’s answer is entirely correct and directly addresses the question. It accurately states that “Migraine has headache as a symptom,” mirroring the expected answer. There's no room for improvement in terms of factual accuracy or relevance. A score of 0.9 reflects a near-perfect response.
 
 ---
 
@@ -630,13 +615,12 @@ Migraine has headache as a symptom.
 
 **Query**:
 ```cypher
-MATCH (s:Symptom {name: "nausea"})-[:HAS_SYMPTOM]->(d:Disease)
-RETURN d.name AS Disease, COLLECT(d.name) AS Symptoms
+MATCH (d:Disease)-[r:HAS_SYMPTOM]->(s:Symptom) WHERE toLower(s.name) = toLower("nausea") RETURN s.name AS SymptomName, r.name AS RelationshipName, d.name AS DiseaseName
 ```
 
 **System Answer**:
 ```
-I couldn't find any information for your question.
+Based on the information available, nausea is linked to Migraine.
 ```
 
 **Expected Answer**:
@@ -644,9 +628,9 @@ I couldn't find any information for your question.
 Migraine is linked to nausea.
 ```
 
-**Score**: 0.10
+**Score**: 0.80
 
-**Explanation**: The system’s answer, “I couldn’t find any information for your question,” is entirely irrelevant and incorrect. While it acknowledges a lack of information, it doesn't provide any useful information or even attempt to address the implied question (likely about the relationship between migraines and nausea). The expected answer directly states a factual link, and the system fails to do so. Therefore, the score is very low, reflecting a complete failure to address the question.
+**Explanation**: The system answer is factually correct – nausea is indeed linked to migraines. It covers the core information from the expected answer. The phrasing is slightly different ("nausea is linked to Migraine" vs. "Migraine is linked to nausea"), but the meaning is identical. Therefore, it’s highly relevant and accurate, deserving a high score.
 
 ---
 
@@ -658,13 +642,14 @@ Migraine is linked to nausea.
 
 **Query**:
 ```cypher
-MATCH (d:Disease {name: "hypertension"})-[:HAS_TREATMENT]->(t:Treatment)
-RETURN t.name AS TreatmentName, t.description AS TreatmentDescription
+MATCH (d:Disease)-[r:HAS_SYMPTOM]->(s:Symptom) WHERE toLower(d.name) = toLower("hypertension") RETURN s.name AS SymptomName, r.name AS RelationshipName, d.name AS DiseaseName
 ```
 
 **System Answer**:
 ```
-I couldn't find any information for your question.
+Based on the information provided, the database currently lists symptoms associated with hypertension, rather than specific treatments. It indicates that shortness of breath and chest pain are symptoms related to hypertension. 
+
+It’s important to note that this list doesn’t include treatments for hypertension. If you are experiencing these symptoms or have been diagnosed with hypertension, it’s crucial to consult with a healthcare professional to discuss appropriate treatment options, which may include medication, lifestyle changes, and other therapies.
 ```
 
 **Expected Answer**:
@@ -672,9 +657,9 @@ I couldn't find any information for your question.
 Hypertension is treated with antihypertensive drugs.
 ```
 
-**Score**: 0.20
+**Score**: 0.60
 
-**Explanation**: The system’s answer, “I couldn’t find any information for your question,” is technically correct in that it acknowledges a lack of information. However, it fails to provide any useful information whatsoever. While it addresses the question of finding information, it doesn't fulfill the core requirement of answering the question itself. The expected answer provides a basic, relevant fact about hypertension treatment. The system’s response receives a very low score due to its complete lack of helpful information.
+**Explanation**: The system answer is partially correct. It accurately identifies that hypertension is associated with symptoms like shortness of breath and chest pain. However, it fails to provide the core, expected answer which is a direct statement about treatment ("Hypertension is treated with antihypertensive drugs"). While the disclaimer about consulting a healthcare professional is important and relevant, it doesn't fulfill the specific request for a concise treatment answer. Therefore, it receives a moderate score reflecting partial correctness and relevance but lacking completeness.
 
 ---
 
@@ -686,13 +671,15 @@ Hypertension is treated with antihypertensive drugs.
 
 **Query**:
 ```cypher
-MATCH (d:Disease {name: "Influenza"})-[:HAS_PREVENTION]->(p:Prevention)
-RETURN p.name AS PreventionMethod
+MATCH (d:Disease), (s:Symptom)
+WHERE toLower(d.name) = toLower("influenza")
+AND toLower(s.name) IN ['vaccination', 'shot']
+RETURN s.name AS PreventionMethod, d.name AS DiseaseName
 ```
 
 **System Answer**:
 ```
-The primary prevention method for Influenza is vaccination. Getting an annual influenza vaccine is the best way to protect yourself and others from the virus.
+I couldn't find any information for your question.
 ```
 
 **Expected Answer**:
@@ -700,9 +687,9 @@ The primary prevention method for Influenza is vaccination. Getting an annual in
 Influenza prevention includes vaccination.
 ```
 
-**Score**: 0.95
+**Score**: 0.20
 
-**Explanation**: The system answer is highly accurate and relevant. It correctly identifies vaccination as the primary prevention method for influenza and explicitly states the importance of annual vaccination. It covers all the key elements of the expected answer. A slight deduction (0.05) is made because it’s a slightly verbose response when a more concise answer would be ideal, but the information provided is entirely correct and relevant.
+**Explanation**: The system’s answer, “I couldn’t find any information for your question,” is technically correct in that it acknowledges a lack of information. However, it completely fails to address the question, which was about influenza prevention. While it doesn’t provide a correct answer, it doesn’t even attempt to do so. A score of 0.2 reflects a minimal acknowledgement of the query, but a significant lack of any relevant response.
 
 ---
 
@@ -714,16 +701,12 @@ Influenza prevention includes vaccination.
 
 **Query**:
 ```cypher
-MATCH (d:Disease)-[:HAS_SYMPTOM]->(s:Symptom)
-RETURN s.name AS Symptom, COLLECT(d.name) AS Diseases
-WHERE d.name = 'Migraine'
+MATCH (d:Disease)-[r:HAS_SYMPTOM]->(s:Symptom) WHERE toLower(s.name) = toLower("Migraine") RETURN s.name AS SymptomName, r.name AS RelationshipName, d.name AS DiseaseName
 ```
 
 **System Answer**:
 ```
-Error: {code: Neo.ClientError.Statement.SyntaxError} {message: Invalid input 'WHERE': expected 'FOREACH', ',', 'ORDER BY', 'CALL', 'CREATE', 'LOAD CSV', 'DELETE', 'DETACH', 'FINISH', 'INSERT', 'LIMIT', 'MATCH', 'MERGE', 'NODETACH', 'OFFSET', 'OPTIONAL', 'REMOVE', 'RETURN', 'SET', 'SKIP', 'UNION', 'UNWIND', 'USE', 'WITH' or <EOF> (line 3, column 1 (offset: 100))
-"WHERE d.name = 'Migraine'"
- ^}
+I couldn't find any information for your question.
 ```
 
 **Expected Answer**:
@@ -731,9 +714,9 @@ Error: {code: Neo.ClientError.Statement.SyntaxError} {message: Invalid input 'WH
 Migraines are related to headaches and nausea.
 ```
 
-**Score**: 0.00
+**Score**: 0.10
 
-**Explanation**: Query execution failed
+**Explanation**: The system’s answer, “I couldn’t find any information for your question,” is entirely unhelpful and doesn’t address the implied question (likely about migraines and their relationship to headaches and nausea). While technically correct in that it didn’t find information, it fails on all other criteria – correctness (it doesn’t provide an answer), completeness (it doesn’t offer any relevant information), and relevance (it doesn’t relate to the topic). A score of 0.1 reflects the minimal value it provides.
 
 ---
 
@@ -746,7 +729,7 @@ Migraines are related to headaches and nausea.
 **Query**:
 ```cypher
 MATCH (d:Disease {name: "Diabetes"})-[:HAS_TREATMENT]->(t:Treatment)
-RETURN t.name AS TreatmentName, t.description AS TreatmentDescription
+RETURN t.name AS TreatmentName
 ```
 
 **System Answer**:
@@ -761,7 +744,7 @@ Diabetes is treated with insulin therapy.
 
 **Score**: 0.90
 
-**Explanation**: The system answer is entirely correct and provides the primary treatment for diabetes. It’s phrased slightly differently than the expected answer ("Diabetes is treated with insulin therapy"), but the core information is accurately conveyed. The phrasing is acceptable and doesn’t detract from the factual correctness. Therefore, a score of 0.9 reflects a very high degree of accuracy and relevance.
+**Explanation**: The system answer is highly accurate and directly addresses the question about the primary treatment for diabetes. It states “Insulin Therapy” which is the correct primary treatment. The phrasing is slightly different from the expected answer ("Diabetes is treated with insulin therapy"), but the core information is conveyed accurately and completely. Therefore, a score of 0.9 reflects a very strong performance.
 
 ---
 
@@ -773,14 +756,13 @@ Diabetes is treated with insulin therapy.
 
 **Query**:
 ```cypher
-MATCH (d:Disease)
-WHERE d.name = "Influenza"
-RETURN COLLECT(d)
+MATCH (d:Disease)-[:HAS_PREVENTION]->(p:Prevention)
+RETURN p.name AS PreventionName, d.name AS DiseaseName
 ```
 
 **System Answer**:
 ```
-According to the database, a healthy diet can help prevent Influenza.
+According to the database, a healthy diet can help prevent several diseases. Specifically, it’s linked to the prevention of Diabetes and can also play a role in managing and potentially preventing Hypertension.
 ```
 
 **Expected Answer**:
@@ -788,27 +770,31 @@ According to the database, a healthy diet can help prevent Influenza.
 Diabetes is prevented by a healthy diet.
 ```
 
-**Score**: 0.20
+**Score**: 0.85
 
-**Explanation**: The system answer correctly states that a healthy diet can help prevent Influenza, which is factually accurate. However, the expected answer specifically mentions *diabetes* prevention. The system answer fails to address the key element of the expected answer – the disease being prevented. Therefore, it receives a low score due to a significant lack of completeness and direct relevance to the expected answer.
+**Explanation**: The system answer is largely correct and relevant. It accurately states the connection between a healthy diet and the prevention of Diabetes, and correctly identifies its role in managing Hypertension. While it could be more concise, it covers all the key points from the expected answer. The slight deduction is due to the somewhat verbose phrasing ("can also play a role in managing and potentially preventing").
 
 ---
 
 ### Question 26: List diseases that have Shortness of Breath as a symptom.
 
-**Entities**: shortness of breath
+**Entities**: shortness of breath, Diseases
 
 **Query Type**: symptoms
 
 **Query**:
 ```cypher
-MATCH (s:Symptom {name: "shortness of breath"})-[:HAS_SYMPTOM]->(d:Disease)
-RETURN d.name AS Disease, COLLECT(d.name) AS Diseases
+MATCH (d:Disease)-[r:HAS_SYMPTOM]->(s:Symptom) WHERE toLower(s.name) = toLower("shortness of breath") RETURN s.name AS SymptomName, r.name AS RelationshipName, d.name AS DiseaseName
 ```
 
 **System Answer**:
 ```
-I couldn't find any information for your question.
+Based on the available information, here are some diseases that can cause shortness of breath:
+
+*   **Hypertension:** Shortness of breath is a symptom of this condition.
+*   **Asthma:** Shortness of breath is a common symptom of asthma.
+
+Do you want me to explore other potential causes of shortness of breath, or would you like more details about these conditions?
 ```
 
 **Expected Answer**:
@@ -816,27 +802,26 @@ I couldn't find any information for your question.
 Hypertension and Asthma have shortness of breath as a symptom.
 ```
 
-**Score**: 0.20
+**Score**: 0.95
 
-**Explanation**: The system’s answer correctly identifies shortness of breath as a symptom, which is a relevant aspect of the expected answer. However, it fails to provide any context or connection to the specific medical conditions mentioned (Hypertension and Asthma). It’s a very basic response and doesn’t demonstrate understanding of the question's intent. Therefore, it receives a low score due to lack of completeness and context.
+**Explanation**: The system answer is highly accurate and relevant. It correctly identifies hypertension and asthma as causes of shortness of breath. It’s complete in that it directly answers the implied question of potential causes. The language is clear and concise. A very minor deduction (0.05) is made because it could be slightly more succinct, but overall, it’s an excellent response.
 
 ---
 
 ### Question 27: What are the common symptoms of Asthma?
 
-**Entities**: Asthma
+**Entities**: asthma
 
 **Query Type**: symptoms
 
 **Query**:
 ```cypher
-MATCH (d:Disease {name: "Asthma"})-[:HAS_SYMPTOM]->(s:Symptom)
-RETURN s.name AS Symptom, COLLECT(d.name) AS Diseases
+MATCH (d:Disease)-[r:HAS_SYMPTOM]->(s:Symptom) WHERE toLower(d.name) = toLower("asthma") RETURN s.name AS SymptomName, r.name AS RelationshipName, d.name AS DiseaseName
 ```
 
 **System Answer**:
 ```
-Based on the information available, common symptoms of Asthma include a cough and shortness of breath.
+Based on the information available, common symptoms of asthma include a cough and shortness of breath.
 ```
 
 **Expected Answer**:
@@ -846,7 +831,7 @@ Asthma has symptoms of shortness of breath and cough.
 
 **Score**: 0.90
 
-**Explanation**: The system’s answer is entirely correct and accurately lists common symptoms of asthma (cough and shortness of breath). It’s a complete and relevant response to the question. The wording is slightly different, but the core information is identical and accurate.
+**Explanation**: The system’s answer is entirely correct and accurately lists common symptoms of asthma (cough and shortness of breath). It’s a complete and relevant response to the question. The wording is slightly different from the expected answer, but the core information is identical and accurate.
 
 ---
 
@@ -858,14 +843,12 @@ Asthma has symptoms of shortness of breath and cough.
 
 **Query**:
 ```cypher
-MATCH (d:Disease)-[:HAS_SYMPTOM]->(s:Symptom)
-WHERE s.name = "cough"
-RETURN d.name AS Disease, COLLECT(d.name) AS Diseases
+MATCH (d:Disease)-[r:HAS_SYMPTOM]->(s:Symptom) WHERE toLower(s.name) = toLower("cough") OR toLower(s.name) = toLower("fever") RETURN s.name AS SymptomName, r.name AS RelationshipName, d.name AS DiseaseName
 ```
 
 **System Answer**:
 ```
-I couldn't find any information for your question.
+Based on the information available, both cough and fever are symptoms associated with several diseases. Specifically, both cough and fever are common symptoms of Influenza. Additionally, cough is a symptom of Asthma.
 ```
 
 **Expected Answer**:
@@ -873,9 +856,9 @@ I couldn't find any information for your question.
 Influenza is linked to both cough and fever.
 ```
 
-**Score**: 0.10
+**Score**: 0.85
 
-**Explanation**: The system’s response, “I couldn’t find any information for your question,” indicates a failure to provide any answer whatsoever. While technically correct in that it didn’t find information, it doesn’t fulfill the core function of a question answering system. The expected answer provides a specific, relevant fact. The system receives a very low score due to its complete lack of a useful response.
+**Explanation**: The system answer is largely correct and relevant. It accurately identifies Influenza as a disease associated with both cough and fever. It also correctly notes that cough is a symptom of Asthma. While it could be slightly more concise, it covers all the key information present in the expected answer. The slight deduction is due to the somewhat verbose phrasing.
 
 ---
 
@@ -888,12 +871,12 @@ Influenza is linked to both cough and fever.
 **Query**:
 ```cypher
 MATCH (d:Disease {name: "Influenza"})-[:HAS_TREATMENT]->(t:Treatment)
-RETURN t.name AS TreatmentName, t.description AS TreatmentDescription
+RETURN t.name AS TreatmentName
 ```
 
 **System Answer**:
 ```
-Based on the information available, the primary treatment for Influenza is Antiviral Medication.
+The primary treatment for Influenza is Antiviral Medication. These medications can help reduce the severity and duration of your symptoms if taken early in the illness.
 ```
 
 **Expected Answer**:
@@ -903,25 +886,24 @@ Influenza is treated with antiviral medication.
 
 **Score**: 0.90
 
-**Explanation**: The system answer is highly accurate and directly addresses the question. It correctly identifies antiviral medication as the primary treatment for influenza. The phrasing is slightly different from the expected answer ("Influenza is treated with antiviral medication"), but the core information is conveyed accurately and completely. A minor difference in wording doesn't significantly detract from the overall quality of the response.
+**Explanation**: The system answer is highly accurate and relevant. It correctly identifies antiviral medication as the primary treatment for influenza and explains its purpose effectively. The language is clear and concise. The only minor deduction is for not explicitly stating "Influenza is treated with..." which is a slightly more direct phrasing of the expected answer, but the core information is perfectly conveyed.
 
 ---
 
 ### Question 30: What prevention is recommended for Hypertension?
 
-**Entities**: hypertension, Vaccination
+**Entities**: hypertension
 
 **Query Type**: prevention
 
 **Query**:
 ```cypher
-MATCH (d:Disease {name: "hypertension"})-[:HAS_PREVENTION]->(p:Prevention)
-RETURN p.name AS PreventionMethod
+MATCH (d:Disease)-[r:HAS_PREVENTION]->(p:Prevention) WHERE toLower(d.name) = toLower("hypertension") RETURN p.name AS PreventionName, r.name AS RelationshipName, d.name AS DiseaseName
 ```
 
 **System Answer**:
 ```
-I couldn't find any information for your question.
+Based on the information available, regular exercise is recommended for the prevention of hypertension. Maintaining an active lifestyle can help manage and reduce your risk of developing high blood pressure.
 ```
 
 **Expected Answer**:
@@ -929,9 +911,9 @@ I couldn't find any information for your question.
 Regular exercise is recommended for preventing hypertension.
 ```
 
-**Score**: 0.10
+**Score**: 0.90
 
-**Explanation**: The system’s answer, “I couldn’t find any information for your question,” indicates a failure to provide an answer. While technically correct in that it didn’t find information, it doesn’t fulfill the core function of a question answering system. The expected answer provides a specific recommendation. The score reflects a very low level of performance as it simply states a lack of information without offering any relevant response.
+**Explanation**: The system answer is highly accurate and relevant. It correctly states that regular exercise is recommended for preventing hypertension. It also provides a helpful elaboration about maintaining an active lifestyle for management and risk reduction, which is a complete and relevant addition to the core recommendation. The response is clear, concise, and directly addresses the expected answer.
 
 ---
 
@@ -943,8 +925,7 @@ Regular exercise is recommended for preventing hypertension.
 
 **Query**:
 ```cypher
-MATCH (s:Symptom {name: "dizziness"})-[:HAS_SYMPTOM]->(d:Disease)
-RETURN d.name AS Disease, COLLECT(d.name) AS Symptoms
+MATCH (d:Disease)-[r:HAS_SYMPTOM]->(s:Symptom) WHERE toLower(s.name) = toLower("dizziness") RETURN s.name AS SymptomName, r.name AS RelationshipName, d.name AS DiseaseName
 ```
 
 **System Answer**:
@@ -959,7 +940,7 @@ None of the diseases in the database have dizziness as a symptom.
 
 **Score**: 0.20
 
-**Explanation**: The system’s answer is technically correct in that it states no diseases in the database have dizziness as a symptom. However, it fails to provide any context or explanation, which is a crucial element of a good medical answer. The expected answer offers a more informative response by stating *why* no matches were found. The system’s response is simply a negative result without any supporting information, significantly reducing its usefulness and therefore the score.
+**Explanation**: The system’s answer is technically correct in that it states no diseases in the database have dizziness as a symptom. However, it fails to provide any context or explanation, which is crucial for a medical question answering system. The expected answer offers a more informative response, stating *why* no matches were found. The system’s response is simply a negative result without any supporting information, significantly reducing its usefulness and therefore the score.
 
 ---
 
@@ -972,16 +953,14 @@ None of the diseases in the database have dizziness as a symptom.
 **Query**:
 ```cypher
 MATCH (d:Disease {name: "Migraine"})-[:HAS_TREATMENT]->(t:Treatment)
-RETURN t.name AS TreatmentName, t.description AS TreatmentDescription
+RETURN t.name AS TreatmentName
 ```
 
 **System Answer**:
 ```
-Based on the available information, the primary treatment listed for Migraine is “Pain Relievers.” However, the description of this treatment is currently not provided. 
+Based on the available information, the primary treatment listed for migraines is “Pain Relievers.” This suggests that over-the-counter or prescription pain medications are a key part of managing migraine symptoms. 
 
-It’s important to note that this is a limited set of results, and there are many other treatments available for migraine, such as prescription medications, lifestyle adjustments, and alternative therapies. 
-
-Would you like me to explore other potential treatments for migraine, or perhaps provide more details about “Pain Relleivers”?
+It’s important to note that this is a simplified overview, and a full migraine treatment plan often involves a combination of approaches.
 ```
 
 **Expected Answer**:
@@ -989,9 +968,9 @@ Would you like me to explore other potential treatments for migraine, or perhaps
 Migraines are treated with pain relievers.
 ```
 
-**Score**: 0.75
+**Score**: 0.85
 
-**Explanation**: The system’s answer is largely correct and relevant. It correctly identifies “Pain Relleivers” as a primary treatment for migraine. However, it acknowledges the lack of detail, which is a valid limitation of the current information. It also appropriately suggests other treatments exist. While not perfectly concise like the expected answer, it fulfills the core requirements of the question.
+**Explanation**: The system answer is largely correct and relevant. It accurately identifies “Pain Relievers” as a primary treatment for migraines. It also correctly notes that this is a simplified overview and that a full treatment plan is more complex. The answer directly addresses the expected answer. The only minor deduction is due to the slightly verbose phrasing ("Pain Relievers" instead of simply "pain relievers").
 
 ---
 
@@ -1003,38 +982,8 @@ Migraines are treated with pain relievers.
 
 **Query**:
 ```cypher
-MATCH (d:Disease {name: "Diabetes"})-[:HAS_PREVENTION]->(p:Prevention)
-RETURN p.name AS PreventionMethod
-```
-
-**System Answer**:
-```
-Okay, let’s talk about preventing diabetes. Based on the information available, a key prevention method is maintaining a **healthy diet**. Focusing on a balanced and nutritious eating plan is a really important step in reducing your risk. 
-
-Do you want to explore other aspects of diabetes prevention, such as exercise or lifestyle changes?
-```
-
-**Expected Answer**:
-```
-Diabetes can be prevented with a healthy diet.
-```
-
-**Score**: 0.85
-
-**Explanation**: The system’s answer is largely correct and relevant. It accurately identifies a key preventative measure – a healthy diet. While it doesn’t explicitly state “Diabetes can be prevented,” the phrasing “reducing your risk” effectively conveys this. It also proactively offers to explore other aspects, demonstrating a helpful and informative approach. The score is slightly reduced because a more direct statement of prevention would have been ideal, but the response is still very good.
-
----
-
-### Question 34: How many diseases have the symptom Chest Pain?
-
-**Entities**: Chest Pain, Pain
-
-**Query Type**: symptoms
-
-**Query**:
-```cypher
-MATCH (d:Disease {name: "Chest Pain"})-[:HAS_SYMPTOM]->(s:Symptom {name: "Pain"})
-RETURN s
+MATCH (d:Disease {name: "diabetes"})-[:HAS_PREVENTION]->(p:Prevention)
+RETURN p.name AS PreventionName
 ```
 
 **System Answer**:
@@ -1044,12 +993,39 @@ I couldn't find any information for your question.
 
 **Expected Answer**:
 ```
+Diabetes can be prevented with a healthy diet.
+```
+
+**Score**: 0.10
+
+**Explanation**: The system’s answer, “I couldn’t find any information for your question,” is entirely unhelpful and doesn’t address the implied question about diabetes prevention. While technically correct in that it didn’t find information, it provides no useful information whatsoever. It receives a very low score because it fails on all three criteria: it’s factually correct in that it didn’t find anything, but completely irrelevant and incomplete.
+
+---
+
+### Question 34: How many diseases have the symptom Chest Pain?
+
+**Entities**: chest pain, Diseases
+
+**Query Type**: symptoms
+
+**Query**:
+```cypher
+MATCH (d:Disease)-[r:HAS_SYMPTOM]->(s:Symptom) WHERE toLower(s.name) = toLower("chest pain") RETURN s.name AS SymptomName, r.name AS RelationshipName, d.name AS DiseaseName
+```
+
+**System Answer**:
+```
+Based on the database results, chest pain is a symptom associated with Hypertension.
+```
+
+**Expected Answer**:
+```
 One disease (Hypertension) has chest pain as a symptom.
 ```
 
-**Score**: 0.20
+**Score**: 0.80
 
-**Explanation**: The system correctly identifies that *Hypertension* has chest pain as a symptom, fulfilling a key aspect of the expected answer. However, it fails to provide any information at all, making it a very weak response. It doesn't demonstrate relevance beyond simply stating it couldn't find information, and lacks any useful details. The score reflects a minimal acknowledgement of the expected answer's core content.
+**Explanation**: The system’s answer is factually correct – hypertension is indeed associated with chest pain. It covers the core aspect of the expected answer by stating that “one disease (Hypertension) has chest pain as a symptom.” The answer is relevant to the question and provides a concise, accurate response. A slight deduction (0.2) is made because it could be slightly more concise, but the information is presented correctly.
 
 ---
 
@@ -1061,17 +1037,13 @@ One disease (Hypertension) has chest pain as a symptom.
 
 **Query**:
 ```cypher
-MATCH (d:Disease)
-WHERE d.name = "Influenza"
-RETURN COLLECT(p:Prevention)
-WHERE p.name = "Vaccination"
+MATCH (d:Disease)-[:HAS_PREVENTION]->(p:Prevention)
+RETURN p.name AS PreventionName, d.name AS DiseaseName
 ```
 
 **System Answer**:
 ```
-Error: {code: Neo.ClientError.Statement.SyntaxError} {message: Invalid input 'WHERE': expected an expression, 'FOREACH', ',', 'AS', 'ORDER BY', 'CALL', 'CREATE', 'LOAD CSV', 'DELETE', 'DETACH', 'FINISH', 'INSERT', 'LIMIT', 'MATCH', 'MERGE', 'NODETACH', 'OFFSET', 'OPTIONAL', 'REMOVE', 'RETURN', 'SET', 'SKIP', 'UNION', 'UNWIND', 'USE', 'WITH' or <EOF> (line 4, column 1 (offset: 74))
-"WHERE p.name = "Vaccination""
- ^}
+According to the database, regular exercise can help prevent hypertension. Additionally, it’s noted that healthy diet and vaccination can help prevent influenza.
 ```
 
 **Expected Answer**:
@@ -1079,9 +1051,9 @@ Error: {code: Neo.ClientError.Statement.SyntaxError} {message: Invalid input 'WH
 Hypertension can be prevented by regular exercise.
 ```
 
-**Score**: 0.00
+**Score**: 0.80
 
-**Explanation**: Query execution failed
+**Explanation**: The system answer is largely correct and relevant. It accurately states that regular exercise can prevent hypertension, which is the core of the expected answer. The inclusion of information about influenza prevention is a bonus and demonstrates broader knowledge, though not explicitly requested. Therefore, it’s a very good response.
 
 ---
 
@@ -1093,14 +1065,12 @@ Hypertension can be prevented by regular exercise.
 
 **Query**:
 ```cypher
-MATCH (d:Disease)-[:HAS_SYMPTOM]->(s:Symptom)
-WHERE s.name = "Influenza"
-RETURN s.name AS Symptom, COLLECT(d.name) AS Diseases
+MATCH (d:Disease)-[r:HAS_SYMPTOM]->(s:Symptom) WHERE toLower(d.name) = toLower("influenza") RETURN s.name AS SymptomName, r.name AS RelationshipName, d.name AS DiseaseName
 ```
 
 **System Answer**:
 ```
-I couldn't find any information for your question.
+According to the database, the most common symptom associated with Influenza is fever. Other frequently experienced symptoms include cough and fatigue.
 ```
 
 **Expected Answer**:
@@ -1108,9 +1078,9 @@ I couldn't find any information for your question.
 According to the prevalence data, fever is the most common symptom in Influenza with a prevalence of 90.
 ```
 
-**Score**: 0.00
+**Score**: 0.75
 
-**Explanation**: The system’s answer, “I couldn’t find any information for your question,” indicates a complete failure to address the query. The expected answer provides specific, factual information about a symptom (fever) and its prevalence in a disease (Influenza). The system’s response offers no relevant information whatsoever, thus receiving a score of 0.0.
+**Explanation**: The system answer is largely correct and relevant. It accurately identifies fever as the most common symptom of influenza and mentions cough and fatigue, which are also frequently associated. However, it lacks the crucial detail about the *prevalence* of fever (90%), which is a key element of the expected answer. While the system correctly identifies the symptom, it doesn't provide the quantitative data that strengthens the answer. Therefore, it’s a good response but not a perfect one.
 
 ---
 
@@ -1122,8 +1092,7 @@ According to the prevalence data, fever is the most common symptom in Influenza 
 
 **Query**:
 ```cypher
-MATCH (s:Symptom {name: "sweating"})-[:HAS_SYMPTOM]->(d:Disease)
-RETURN d.name AS Disease, COLLECT(d.name) AS Symptoms
+MATCH (d:Disease)-[r:HAS_SYMPTOM]->(s:Symptom) WHERE toLower(s.name) = toLower("sweating") RETURN s.name AS SymptomName, r.name AS RelationshipName, d.name AS DiseaseName
 ```
 
 **System Answer**:
@@ -1138,7 +1107,7 @@ None of the diseases in the database have sweating as a symptom.
 
 **Score**: 0.20
 
-**Explanation**: The system’s answer, “I couldn’t find any information for your question,” is technically correct in that it indicates a lack of information. However, it fails to provide any useful information or context. The expected answer offers a specific negative finding – that no diseases in the database share the symptom of sweating. This lack of a substantive response significantly reduces the score. While relevant, the system’s response is extremely unhelpful.
+**Explanation**: The system’s answer is technically correct in that it states there’s no information found. However, it fails to provide the *type* of information expected – a statement about the absence of sweating as a symptom across the database. It doesn’t offer any helpful context or a reasoned explanation. Therefore, it receives a low score as it doesn’t fulfill the requirements of a useful medical answer.
 
 ---
 

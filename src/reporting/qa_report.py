@@ -2,7 +2,6 @@
 Question-Answer pair evaluation and reporting module.
 """
 import os
-import json
 from datetime import datetime
 from ..config import get_logger
 
@@ -119,7 +118,7 @@ def generate_markdown_table_report(eval_results, report_filename):
     
     with open(report_filename, 'w', encoding='utf-8') as f:
         # Write report header
-        f.write("# Question-Answer Evaluation Report\n\n")
+        f.write("# Neo4j Question-Answer Evaluation Report\n\n")
         f.write(f"Generated: {timestamp}\n\n")
         
         # Write summary metrics
