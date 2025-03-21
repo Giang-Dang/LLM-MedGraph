@@ -1,12 +1,11 @@
 """
 Query generator module for medical knowledge graph.
 """
-import json
 import ollama
 from neo4j import GraphDatabase
 # Change relative imports to absolute imports
 from src.db.connection import get_neo4j_session
-from src.config import LLM_MODEL, QUERY_TYPES, RELATION_TYPES, ENTITY_TYPES, get_logger
+from src.config import LLM_MODEL, get_logger
 
 # Get module-specific logger
 logger = get_logger("query.query_generator")

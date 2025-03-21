@@ -3,10 +3,9 @@ Main entry point for the Medical Knowledge Graph application.
 """
 import argparse
 from src.config import SAMPLE_QUESTIONS, get_logger
-from src.db.connection import get_driver, close_driver
+from src.db.connection import close_driver
 from src.evaluation.accuracy import evaluate_responses
 from src.reporting.report import generate_report
-from src.nlp.entity_extraction import extract_entities, analyze_question
 from src.query.cypher import execute_cypher_query
 from src.nlp.llm import generate_response
 

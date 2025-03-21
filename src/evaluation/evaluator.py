@@ -3,12 +3,11 @@ Medical knowledge graph evaluator module.
 """
 import json
 import ollama
-import pandas as pd
 from datetime import datetime
 from difflib import SequenceMatcher
 # Change relative imports to absolute imports
 from src.config import LLM_MODEL, get_logger
-from src.nlp.entity_extraction import extract_entities, analyze_question
+from src.nlp.entity_extraction import analyze_question
 from src.query.query_generator import generate_cypher_query, execute_query
 
 # Get module-specific logger

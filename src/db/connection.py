@@ -1,7 +1,6 @@
 """
 Database connection module for Neo4j interactions.
 """
-import logging
 from neo4j import GraphDatabase
 from src.config import NEO4J_URI, NEO4J_USERNAME, NEO4J_PASSWORD, get_logger
 

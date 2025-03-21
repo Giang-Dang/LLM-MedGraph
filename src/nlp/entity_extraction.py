@@ -4,8 +4,8 @@ Entity extraction module for medical text processing.
 import json
 import ollama
 import medspacy
-from medspacy.ner import TargetMatcher, TargetRule
-from src.config import LLM_MODEL, ENTITY_TYPES, get_logger
+from medspacy.ner import TargetRule
+from src.config import LLM_MODEL, get_logger
 
 # Get module-specific logger
 logger = get_logger("nlp.entity_extraction")
