@@ -2,6 +2,7 @@ from neo4j import GraphDatabase
 import ollama
 import medspacy
 from medspacy.ner import TargetMatcher, TargetRule
+from datetime import datetime
 
 # Initialize Neo4j driver
 neo4j_uri = "bolt://localhost:7687"
@@ -16,7 +17,7 @@ target_matcher = nlp.get_pipe("medspacy_target_matcher")
 # Define diseases
 disease_rules = [
     TargetRule("Influenza", "DISEASE"),
-    TargetRule("Diabetes Mellitus", "DISEASE"),
+    TargetRule("Diabetes", "DISEASE"),
     TargetRule("Hypertension", "DISEASE"),
     TargetRule("Asthma", "DISEASE"),
     TargetRule("Migraine", "DISEASE")
@@ -38,32 +39,46 @@ symptom_rules = [
 
 # Define preventions
 prevention_rules = [
-    TargetRule("Influenza Vaccination", "PREVENTION"),
-    TargetRule("Healthy Diet and Weight Management", "PREVENTION"),
-    TargetRule("Blood Pressure Monitoring and Low-Sodium Diet", "PREVENTION"),
-    TargetRule("Avoid Allergens and Air Pollutants", "PREVENTION"),
-    TargetRule("Regular Sleep and Stress Management", "PREVENTION")
+    TargetRule("Vaccination", "PREVENTION"),
+    TargetRule("Healthy Diet", "PREVENTION"),
+    TargetRule("Regular Exercise", "PREVENTION"),
+    TargetRule("Avoid Allergens", "PREVENTION"),
+    TargetRule("Stress Management", "PREVENTION")
 ]
 
 # Define treatments
 treatment_rules = [
-    TargetRule("Antiviral Medications", "TREATMENT"),
-    TargetRule("Oseltamivir", "TREATMENT"),
-    TargetRule("Zanamivir", "TREATMENT"),
+    TargetRule("Antiviral Medication", "TREATMENT"),
     TargetRule("Insulin Therapy", "TREATMENT"),
-    TargetRule("Oral Hypoglycemics", "TREATMENT"),
-    TargetRule("Antihypertensive Medications", "TREATMENT"),
-    TargetRule("ACE Inhibitors", "TREATMENT"),
-    TargetRule("Beta-Blockers", "TREATMENT"),
+    TargetRule("Antihypertensive Drugs", "TREATMENT"),
     TargetRule("Bronchodilators", "TREATMENT"),
-    TargetRule("Inhaled Corticosteroids", "TREATMENT"),
-    TargetRule("Analgesics", "TREATMENT"),
-    TargetRule("NSAIDs", "TREATMENT"),
-    TargetRule("Triptans", "TREATMENT")
+    TargetRule("Pain Relievers", "TREATMENT")
+]
+
+# Add risk factors
+risk_factor_rules = [
+    TargetRule("Smoking", "RISK_FACTOR"),
+    TargetRule("Obesity", "RISK_FACTOR"),
+    TargetRule("High Salt Intake", "RISK_FACTOR"),
+    TargetRule("Sedentary Lifestyle", "RISK_FACTOR"),
+    TargetRule("Allergen Exposure", "RISK_FACTOR")
+]
+
+# Add age groups
+age_group_rules = [
+    TargetRule("Children", "AGE_GROUP"),
+    TargetRule("Adults", "AGE_GROUP"),
+    TargetRule("Elderly", "AGE_GROUP")
+]
+
+# Add genders
+gender_rules = [
+    TargetRule("Male", "GENDER"),
+    TargetRule("Female", "GENDER")
 ]
 
 # Combine all rules
-all_rules = disease_rules + symptom_rules + prevention_rules + treatment_rules
+all_rules = disease_rules + symptom_rules + prevention_rules + treatment_rules + risk_factor_rules + age_group_rules + gender_rules
 
 # Add rules to the matcher
 target_matcher.add(all_rules)
@@ -101,18 +116,50 @@ def analyze_question(question):
     entities = [ent.text for ent in doc.ents]
 
     keywords_to_query_type = {
+        # Disease-Symptom relationships
         "symptom": "symptoms",
+        "symptoms": "symptoms",
+        
+        # Disease-Treatment relationships
         "treatment": "treatments",
         "treat": "treatments",
-        "cause": "causes",
-        "etiology": "causes",
+        "medication": "treatments",
+        "therapy": "treatments",
+        "drug": "treatments",
+        
+        # Disease-Prevention relationships
         "prevention": "prevention",
-        "prevent": "prevention"
+        "prevent": "prevention",
+        "preventive": "prevention",
+        
+        # Disease-Risk Factor relationships
+        "risk": "risk_factors",
+        "risk factor": "risk_factors",
+        "cause": "risk_factors",
+        "causes": "risk_factors",
+        
+        # Disease-Age Group relationships
+        "age": "age_groups",
+        "age group": "age_groups",
+        "children": "age_groups",
+        "adults": "age_groups",
+        "elderly": "age_groups",
+        
+        # Disease-Gender relationships
+        "gender": "gender",
+        "sex": "gender",
+        "male": "gender",
+        "female": "gender",
+        
+        # Disease-Prevalence (special case for gender and age group relationships)
+        "prevalence": "prevalence",
+        "common": "prevalence",
+        "affects": "prevalence"
     }
 
     query_type = "general"
     for keyword, q_type in keywords_to_query_type.items():
-        if keyword in question:
+        if keyword in question.lower():
             query_type = q_type
             break
 
@@ -120,8 +167,121 @@ def analyze_question(question):
 
 
 def fetch_context_from_neo4j(entities, query_type):
-    """Fetch relevant context from Neo4j based on entities and query type."""
-    query_templates = {
+    """
+    Fetch relevant context from Neo4j based on entities and query type.
+    
+    This function handles three types of lookups:
+    1. Forward lookups (disease → property)
+    2. Reverse lookups (property → disease)
+    3. List all queries (showing all relationships of a specific type)
+    
+    Args:
+        entities (list): List of entity names extracted from the question
+        query_type (str): Type of information being requested (symptoms, treatments, etc.)
+        
+    Returns:
+        str: Formatted context text containing relevant medical information
+    """
+    context = ""
+    
+    # Handle "list all" type queries when no specific entities are provided
+    if len(entities) == 0:
+        context = _handle_list_all_query(query_type)
+        if context:
+            return context
+    
+    # Process each entity from the question
+    for entity in entities:
+        # Try forward lookup first (disease → properties)
+        forward_result = _execute_forward_lookup(entity, query_type)
+        if forward_result:
+            context += forward_result
+            continue
+            
+        # If forward lookup fails, try reverse lookup (property → diseases)
+        reverse_result = _execute_reverse_lookup(entity, query_type)
+        if reverse_result:
+            context += reverse_result
+    
+    return context
+
+
+def _handle_list_all_query(query_type):
+    """
+    Handle queries that request information about all relationships of a certain type.
+    
+    Args:
+        query_type (str): Type of medical information requested
+        
+    Returns:
+        str: Formatted context with information about all entities of the requested type
+    """
+    # Define templates for listing all relationships
+    list_all_templates = {
+        "symptoms": """
+            MATCH (d:Disease)-[:HAS_SYMPTOM]->(s:Symptom)
+            RETURN collect(DISTINCT {disease: d.name, symptoms: collect(s.name)}) AS disease_symptoms
+        """,
+        "treatments": """
+            MATCH (d:Disease)-[:HAS_TREATMENT]->(t:Treatment)
+            RETURN collect(DISTINCT {disease: d.name, treatments: collect(t.name)}) AS disease_treatments
+        """,
+        "prevention": """
+            MATCH (d:Disease)-[:HAS_PREVENTION]->(p:Prevention)
+            RETURN collect(DISTINCT {disease: d.name, prevention_methods: collect(p.name)}) AS disease_prevention
+        """,
+        "risk_factors": """
+            MATCH (d:Disease)-[:HAS_RISK_FACTOR]->(r:RiskFactor)
+            RETURN collect(DISTINCT {disease: d.name, risk_factors: collect(r.name)}) AS disease_risk_factors
+        """
+    }
+    
+    # Return early if this query type doesn't support list all
+    if query_type not in list_all_templates:
+        return ""
+        
+    context = ""
+    with driver.session() as session:
+        try:
+            result = session.run(list_all_templates[query_type])
+            record = result.single()
+            
+            if not record:
+                return ""
+                
+            context += f"## {query_type.title()} for all diseases:\n\n"
+            
+            if query_type == "symptoms":
+                for item in record["disease_symptoms"]:
+                    context += f"Disease: {item['disease']}\nSymptoms: {', '.join(item['symptoms'])}\n\n"
+            elif query_type == "treatments":
+                for item in record["disease_treatments"]:
+                    context += f"Disease: {item['disease']}\nTreatments: {', '.join(item['treatments'])}\n\n"
+            elif query_type == "prevention":
+                for item in record["disease_prevention"]:
+                    context += f"Disease: {item['disease']}\nPrevention Methods: {', '.join(item['prevention_methods'])}\n\n"
+            elif query_type == "risk_factors":
+                for item in record["disease_risk_factors"]:
+                    context += f"Disease: {item['disease']}\nRisk Factors: {', '.join(item['risk_factors'])}\n\n"
+        except Exception as e:
+            print(f"Error executing list all query for {query_type}: {str(e)}")
+            
+    return context
+
+
+def _execute_forward_lookup(entity, query_type):
+    """
+    Execute a forward lookup query (disease → property).
+    
+    Args:
+        entity (str): Entity name to look up
+        query_type (str): Type of information being requested
+        
+    Returns:
+        str: Formatted context text or empty string if no results
+    """
+    # Forward lookup templates (disease → property)
+    forward_query_templates = {
         "symptoms": """
             MATCH (d:Disease)
             WHERE toLower(d.name) = toLower($entity)
@@ -134,17 +294,38 @@ def fetch_context_from_neo4j(entities, query_type):
             OPTIONAL MATCH (d)-[:HAS_TREATMENT]->(t:Treatment)
             RETURN d.name AS disease, collect(t.name) AS treatments
         """,
-        "causes": """
-            MATCH (d:Disease)
-            WHERE toLower(d.name) = toLower($entity)
-            OPTIONAL MATCH (d)-[:HAS_CAUSE]->(c:Cause)
-            RETURN d.name AS disease, collect(c.name) AS causes
-        """,
         "prevention": """
             MATCH (d:Disease)
             WHERE toLower(d.name) = toLower($entity)
             OPTIONAL MATCH (d)-[:HAS_PREVENTION]->(p:Prevention)
             RETURN d.name AS disease, collect(p.name) AS prevention_methods
+        """,
+        "risk_factors": """
+            MATCH (d:Disease)
+            WHERE toLower(d.name) = toLower($entity)
+            OPTIONAL MATCH (d)-[:HAS_RISK_FACTOR]->(r:RiskFactor)
+            RETURN d.name AS disease, collect(r.name) AS risk_factors
+        """,
+        "age_groups": """
+            MATCH (d:Disease)
+            WHERE toLower(d.name) = toLower($entity)
+            OPTIONAL MATCH (d)-[:AFFECTS]->(a:AgeGroup)
+            RETURN d.name AS disease, collect(a.name) AS age_groups
+        """,
+        "gender": """
+            MATCH (d:Disease)
+            WHERE toLower(d.name) = toLower($entity)
+            OPTIONAL MATCH (d)-[r:AFFECTS]->(g:Gender)
+            RETURN d.name AS disease, collect({gender: g.name, prevalence: r.prevalence}) AS gender_prevalence
+        """,
+        "prevalence": """
+            MATCH (d:Disease)
+            WHERE toLower(d.name) = toLower($entity)
+            OPTIONAL MATCH (d)-[r:AFFECTS]->(n)
+            WHERE n:Gender OR n:AgeGroup
+            RETURN d.name AS disease, 
+                   collect(DISTINCT CASE WHEN n:Gender THEN {type: 'Gender', name: n.name, prevalence: r.prevalence} END) AS gender_prevalence,
+                   collect(DISTINCT CASE WHEN n:AgeGroup THEN {type: 'AgeGroup', name: n.name} END) AS age_groups
         """,
         "general": """
             MATCH (d:Disease)
@@ -153,42 +334,145 @@ def fetch_context_from_neo4j(entities, query_type):
             RETURN d.name AS disease, type(r) AS relationship, collect(n.name) AS related_entities
         """
     }
-
+    
     context = ""
     with driver.session() as session:
-        for entity in entities:
-            query = query_templates.get(query_type, query_templates["general"])
+        try:
+            query = forward_query_templates.get(query_type, forward_query_templates["general"])
             result = session.run(query, entity=entity)
-            for record in result:
-                if query_type == "symptoms":
-                    context += f"Disease: {record['disease']}\nSymptoms: {', '.join(record['symptoms'])}\n\n"
-                elif query_type == "treatments":
-                    context += f"Disease: {record['disease']}\nTreatments: {', '.join(record['treatments'])}\n\n"
-                elif query_type == "causes":
-                    context += f"Disease: {record['disease']}\nCauses: {', '.join(record['causes'])}\n\n"
-                elif query_type == "prevention":
-                    context += f"Disease: {record['disease']}\nPrevention Methods: {', '.join(record['prevention_methods'])}\n\n"
-                else:
-                    context += f"Disease: {record['disease']}\n{record['relationship'].replace('_', ' ').title()}: {', '.join(record['related_entities'])}\n\n"
+            record = result.single()
+            
+            if not record:
+                return ""
+                
+            # Format results based on query type
+            if query_type == "symptoms":
+                context += f"Disease: {record['disease']}\nSymptoms: {', '.join(record['symptoms'])}\n\n"
+            elif query_type == "treatments":
+                context += f"Disease: {record['disease']}\nTreatments: {', '.join(record['treatments'])}\n\n"
+            elif query_type == "prevention":
+                context += f"Disease: {record['disease']}\nPrevention Methods: {', '.join(record['prevention_methods'])}\n\n"
+            elif query_type == "risk_factors":
+                context += f"Disease: {record['disease']}\nRisk Factors: {', '.join(record['risk_factors'])}\n\n"
+            elif query_type == "age_groups":
+                context += f"Disease: {record['disease']}\nAge Groups: {', '.join(record['age_groups'])}\n\n"
+            elif query_type == "gender":
+                gender_info = [f"{g['gender']} ({g['prevalence']}%)" for g in record['gender_prevalence'] if g and g['prevalence'] is not None]
+                context += f"Disease: {record['disease']}\nGender Distribution: {', '.join(gender_info)}\n\n"
+            elif query_type == "prevalence":
+                gender_info = [f"{g['name']} ({g['prevalence']}%)" for g in record['gender_prevalence'] if g and g['prevalence'] is not None]
+                age_info = [g['name'] for g in record['age_groups'] if g]
+                context += f"Disease: {record['disease']}\n"
+                if gender_info:
+                    context += f"Gender Distribution: {', '.join(gender_info)}\n"
+                if age_info:
+                    context += f"Age Groups: {', '.join(age_info)}\n"
+                context += "\n"
+            else:
+                context += f"Disease: {record['disease']}\n{record['relationship'].replace('_', ' ').title()}: {', '.join(record['related_entities'])}\n\n"
+        except Exception as e:
+            print(f"Error executing forward lookup for {entity}, {query_type}: {str(e)}")
+            
+    return context
+
+
+def _execute_reverse_lookup(entity, query_type):
+    """
+    Execute a reverse lookup query (property → disease).
+    
+    Args:
+        entity (str): Entity name to look up
+        query_type (str): Type of information being requested
+        
+    Returns:
+        str: Formatted context text or empty string if no results or unsupported query type
+    """
+    # Reverse lookup templates (property → disease)
+    reverse_query_templates = {
+        "symptoms": """
+            MATCH (s:Symptom)<-[:HAS_SYMPTOM]-(d:Disease)
+            WHERE toLower(s.name) = toLower($entity)
+            RETURN s.name AS symptom, collect(d.name) AS diseases
+        """,
+        "treatments": """
+            MATCH (t:Treatment)<-[:HAS_TREATMENT]-(d:Disease)
+            WHERE toLower(t.name) = toLower($entity)
+            RETURN t.name AS treatment, collect(d.name) AS diseases
+        """,
+        "prevention": """
+            MATCH (p:Prevention)<-[:HAS_PREVENTION]-(d:Disease)
+            WHERE toLower(p.name) = toLower($entity)
+            RETURN p.name AS prevention, collect(d.name) AS diseases
+        """,
+        "risk_factors": """
+            MATCH (r:RiskFactor)<-[:HAS_RISK_FACTOR]-(d:Disease)
+            WHERE toLower(r.name) = toLower($entity)
+            RETURN r.name AS risk_factor, collect(d.name) AS diseases
+        """,
+        "age_groups": """
+            MATCH (a:AgeGroup)<-[:AFFECTS]-(d:Disease)
+            WHERE toLower(a.name) = toLower($entity)
+            RETURN a.name AS age_group, collect(d.name) AS diseases
+        """,
+        "gender": """
+            MATCH (g:Gender)<-[r:AFFECTS]-(d:Disease)
+            WHERE toLower(g.name) = toLower($entity)
+            RETURN g.name AS gender, collect({disease: d.name, prevalence: r.prevalence}) AS diseases
+        """
+    }
+    
+    # Return early if this query type doesn't support reverse lookup
+    if query_type not in reverse_query_templates:
+        return ""
+        
+    context = ""
+    with driver.session() as session:
+        try:
+            query = reverse_query_templates[query_type]
+            result = session.run(query, entity=entity)
+            record = result.single()
+            
+            if not record:
+                return ""
+                
+            # Format results based on query type
+            if query_type == "symptoms":
+                context += f"Symptom: {record['symptom']}\nDiseases: {', '.join(record['diseases'])}\n\n"
+            elif query_type == "treatments":
+                context += f"Treatment: {record['treatment']}\nDiseases: {', '.join(record['diseases'])}\n\n"
+            elif query_type == "prevention":
+                context += f"Prevention: {record['prevention']}\nDiseases: {', '.join(record['diseases'])}\n\n"
+            elif query_type == "risk_factors":
+                context += f"Risk Factor: {record['risk_factor']}\nDiseases: {', '.join(record['diseases'])}\n\n"
+            elif query_type == "age_groups":
+                context += f"Age Group: {record['age_group']}\nDiseases: {', '.join(record['diseases'])}\n\n"
+            elif query_type == "gender":
+                disease_info = [f"{d['disease']} ({d['prevalence']}%)" for d in record['diseases'] if d['prevalence'] is not None]
+                context += f"Gender: {record['gender']}\nDiseases: {', '.join(disease_info)}\n\n"
+        except Exception as e:
+            print(f"Error executing reverse lookup for {entity}, {query_type}: {str(e)}")
+            
     return context
 
 
 def generate_response(question, use_graph=False):
     """Generate a response from the LLM, optionally using Neo4j for context."""
-    if use_graph:
-        entities, query_type = analyze_question(question)
-        context = fetch_context_from_neo4j(entities, query_type)
-        if context:
-            question = f"{question}\n\nContext:\n{context}"
-
+    # graph context is now handled by the calling function
+    
+    print(f'generate_response > question: {question}, use_graph: {use_graph}')
+    
     response = ollama.generate(
         model="gemma3:4b",
         prompt=question
     )
-    # Ensure we return a string rather than a response object
-    if hasattr(response, "text"):
+    
+    # Extract the response text
+    if hasattr(response, "response"):
+        return response.response
+    elif hasattr(response, "text"):
         return response.text
     else:
+        # Default fallback for any other format
         return str(response)
 
 
@@ -208,161 +492,534 @@ def evaluate_factual_accuracy(response):
     verified_relationships = 0
     total_relationships = 0
 
-    # Check disease-symptom relationships
+    # Check disease-symptom relationships (both directions)
     if 'DISEASE' in entity_groups and 'SYMPTOM' in entity_groups:
         for disease in entity_groups['DISEASE']:
             for symptom in entity_groups['SYMPTOM']:
                 total_relationships += 1
-                if verify_entity_relationship(disease, symptom):
+                # Check both directions (disease→symptom and symptom→disease)
+                if verify_entity_relationship(disease, symptom) or verify_entity_relationship(symptom, disease):
                     verified_relationships += 1
 
-    # Check disease-treatment relationships
+    # Check disease-treatment relationships (both directions)
     if 'DISEASE' in entity_groups and 'TREATMENT' in entity_groups:
         for disease in entity_groups['DISEASE']:
             for treatment in entity_groups['TREATMENT']:
                 total_relationships += 1
-                if verify_entity_relationship(disease, treatment):
+                if verify_entity_relationship(disease, treatment) or verify_entity_relationship(treatment, disease):
                     verified_relationships += 1
 
+    # Check disease-prevention relationships (both directions)
+    if 'DISEASE' in entity_groups and 'PREVENTION' in entity_groups:
+        for disease in entity_groups['DISEASE']:
+            for prevention in entity_groups['PREVENTION']:
+                total_relationships += 1
+                if verify_entity_relationship(disease, prevention) or verify_entity_relationship(prevention, disease):
+                    verified_relationships += 1
+
+    # Check disease-risk factor relationships (both directions)
+    if 'DISEASE' in entity_groups and 'RISK_FACTOR' in entity_groups:
+        for disease in entity_groups['DISEASE']:
+            for risk_factor in entity_groups['RISK_FACTOR']:
+                total_relationships += 1
+                if verify_entity_relationship(disease, risk_factor) or verify_entity_relationship(risk_factor, disease):
+                    verified_relationships += 1
+
+    # Check disease-age group relationships (both directions)
+    if 'DISEASE' in entity_groups and 'AGE_GROUP' in entity_groups:
+        for disease in entity_groups['DISEASE']:
+            for age_group in entity_groups['AGE_GROUP']:
+                total_relationships += 1
+                if verify_entity_relationship(disease, age_group) or verify_entity_relationship(age_group, disease):
+                    verified_relationships += 1
+
+    # Check disease-gender relationships (both directions)
+    if 'DISEASE' in entity_groups and 'GENDER' in entity_groups:
+        for disease in entity_groups['DISEASE']:
+            for gender in entity_groups['GENDER']:
+                total_relationships += 1
+                if verify_entity_relationship(disease, gender) or verify_entity_relationship(gender, disease):
+                    verified_relationships += 1
+                    
+    # Also check for list-based relationships (multiple entities of same type are related)
+    if 'SYMPTOM' in entity_groups and len(entity_groups['SYMPTOM']) > 1:
+        check_related_entities('SYMPTOM', entity_groups['SYMPTOM'], total_relationships, verified_relationships)
+        
+    if 'DISEASE' in entity_groups and len(entity_groups['DISEASE']) > 1:
+        check_related_entities('DISEASE', entity_groups['DISEASE'], total_relationships, verified_relationships)
+
     # Calculate accuracy
-    accuracy = verified_relationships / \
-        max(1, total_relationships)  # Avoid division by zero
+    accuracy = verified_relationships / max(1, total_relationships)  # Avoid division by zero
     return accuracy
+    
+    
+def check_related_entities(entity_type, entities, total_relationships, verified_relationships):
+    """Check if multiple entities of the same type are related to each other through a common entity."""
+    with driver.session() as session:
+        for i in range(len(entities)):
+            for j in range(i+1, len(entities)):
+                # Check if both entities are related to the same disease/symptom
+                if entity_type == 'SYMPTOM':
+                    query = """
+                    MATCH (s1:Symptom)<-[:HAS_SYMPTOM]-(d:Disease)-[:HAS_SYMPTOM]->(s2:Symptom)
+                    WHERE toLower(s1.name) = toLower($entity1) AND toLower(s2.name) = toLower($entity2)
+                    RETURN d.name as disease
+                    """
+                elif entity_type == 'DISEASE':
+                    query = """
+                    MATCH (d1:Disease)-[:HAS_SYMPTOM]->(s:Symptom)<-[:HAS_SYMPTOM]-(d2:Disease)
+                    WHERE toLower(d1.name) = toLower($entity1) AND toLower(d2.name) = toLower($entity2)
+                    RETURN s.name as common_symptom
+                    """
+                else:
+                    continue
+                    
+                result = session.run(query, entity1=entities[i], entity2=entities[j])
+                record = result.single()
+                
+                total_relationships += 1
+                if record:
+                    verified_relationships += 1
 
 
 def evaluate_responses(questions):
-    """Evaluate LLM responses with and without Neo4j integration for multiple questions.
-
+    """
+    Evaluate LLM responses with and without Neo4j integration for multiple questions.
+    
     Args:
-        questions: List of questions or single question string
+        questions (str or list): Question(s) to evaluate
+        
+    Returns:
+        list or dict: Evaluation results for each question or single result if only one question provided
     """
     # Convert single question to list if needed
     if isinstance(questions, str):
         questions = [questions]
+        single_question = True
+    else:
+        single_question = False
 
     results = []
 
     for idx, question in enumerate(questions, 1):
-        print(f"Processing question {idx}: {question}")
-        prompt = f"Please provide a concise and accurate answer to the medical question below. If you lack sufficient information or are uncertain about the answer, please acknowledge this and refrain from providing an inaccurate response. Focus solely on addressing the question without including unrelated information.\n\nQuestion: {question}"
+        print(f"Processing question {idx}/{len(questions)}: {question}")
+        
+        try:
+            # Process the question and generate responses
+            result = _process_single_question(question)
+            results.append(result)
+        except Exception as e:
+            print(f"Error processing question: '{question}'. Error: {str(e)}")
+            # Add a placeholder result with error information
+            results.append({
+                "question": question,
+                "query_type": "error",
+                "error": str(e),
+                "prompt_without_graph": "",
+                "prompt_with_graph": "",
+                "response_without_graph": f"Error generating response: {str(e)}",
+                "accuracy_without_graph": 0.0,
+                "response_with_graph": f"Error generating response: {str(e)}",
+                "accuracy_with_graph": 0.0
+            })
 
-        # Generate responses
-        response_without_graph = generate_response(prompt, use_graph=False)
-        response_with_graph = generate_response(prompt, use_graph=True)
-
-        # Evaluate factual accuracy
-        accuracy_without_graph = evaluate_factual_accuracy(
-            response_without_graph)
-        accuracy_with_graph = evaluate_factual_accuracy(response_with_graph)
-
-        results.append({
-            "question": question,
-            "response_without_graph": response_without_graph,
-            "accuracy_without_graph": accuracy_without_graph,
-            "response_with_graph": response_with_graph,
-            "accuracy_with_graph": accuracy_with_graph
-        })
-
-    return results if len(results) > 1 else results[0]
+    # Return single result if input was a single question
+    return results[0] if single_question and results else results
 
 
-def generate_report(evaluations, filename="report.md"):
-    """Generate a Markdown report from the evaluation results with comparison tables."""
+def _process_single_question(question):
+    """
+    Process a single question, generating responses with and without Neo4j context.
     
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write("# Medical Evaluation Report\n\n")
-
-        # Create accuracy comparison table header
-        f.write("## Factual Accuracy Comparison\n\n")
-        f.write("| Question | Without Neo4j | With Neo4j |\n")
-        f.write("|----------|---------------|------------|\n")
-
-        # Initialize totals
-        total_without_db = 0
-        total_with_db = 0
-        question_count = len(evaluations) if isinstance(evaluations, list) else 1
+    Args:
+        question (str): The question to process
         
-        if isinstance(evaluations, list):
-            # Multiple questions case
-            for eval_item in evaluations:
-                accuracy_without = eval_item["accuracy_without_graph"]
-                accuracy_with = eval_item["accuracy_with_graph"]
-                
-                # Add to totals
-                total_without_db += accuracy_without
-                total_with_db += accuracy_with
-                
-                # Format accuracies as percentages
-                accuracy_without_str = f"{accuracy_without:.2%}"
-                accuracy_with_str = f"{accuracy_with:.2%}"
-                
-                # Write table row
-                f.write(f"| {eval_item['question']} | {accuracy_without_str} | {accuracy_with_str} |\n")
-        else:
-            # Single question case
-            accuracy_without = evaluations["accuracy_without_graph"]
-            accuracy_with = evaluations["accuracy_with_graph"]
-            
-            # Add to totals
-            total_without_db += accuracy_without
-            total_with_db += accuracy_with
-            
-            # Format accuracies as percentages
-            accuracy_without_str = f"{accuracy_without:.2%}"
-            accuracy_with_str = f"{accuracy_with:.2%}"
-            
-            # Write table row
-            f.write(f"| {evaluations['question']} | {accuracy_without_str} | {accuracy_with_str} |\n")
+    Returns:
+        dict: Evaluation results including prompts, responses and accuracy scores
+    """
+    # Define prompt templates for different query types
+    prompt_templates = {
+        "symptoms": "What are the typical symptoms that patients with {entities} experience? {instruction}",
+        "treatments": "What treatments are commonly used for patients with {entities}? {instruction}",
+        "prevention": "How can {entities} be prevented? {instruction}",
+        "risk_factors": "What factors increase the risk of developing {entities}? {instruction}",
+        "age_groups": "Which age groups are most commonly affected by {entities}? {instruction}",
+        "gender": "How does {entities} affect different genders, including any differences in prevalence? {instruction}",
+        "prevalence": "How common is {entities} across different populations, age groups, and genders? {instruction}",
+        "general": "Can you provide detailed medical information about {entities}? {instruction}"
+    }
+    
+    # Define reverse prompt templates for queries asking about properties->diseases
+    reverse_prompt_templates = {
+        "symptoms": "Which medical conditions or diseases commonly cause {entities}? {instruction}",
+        "treatments": "Which medical conditions or diseases are typically treated with {entities}? {instruction}",
+        "prevention": "Which diseases can be prevented through {entities}? {instruction}",
+        "risk_factors": "Which diseases are associated with the risk factor {entities}? {instruction}",
+        "age_groups": "Which diseases commonly affect patients in the {entities} age group? {instruction}",
+        "gender": "Which diseases are more prevalent in {entities} patients? {instruction}"
+    }
 
-        # Calculate and write averages
-        avg_without_db = total_without_db / question_count
-        avg_with_db = total_with_db / question_count
+    # Define instructions based on graph context availability
+    with_context_instruction = "Provide a structured, fact-oriented response using ONLY the provided context. Present information in a clear, concise format that explicitly states medical relationships. If the context doesn't contain the answer, clearly state this limitation."
+    without_context_instruction = "Since no database information is available, simply state that you don't have knowledge about this specific question in your medical database. Be direct and brief."
+    pretrained_instruction = "Provide a structured, fact-oriented response using established medical knowledge. Present information in a clear, concise format that explicitly states medical relationships."
+
+    # Analyze question type
+    entities, query_type = analyze_question(question)
+    
+    # Determine if this is a reverse lookup query (asking which diseases have a certain property)
+    is_reverse_lookup = False
+    reverse_lookup_keywords = [
+        "which diseases", "what diseases", "list diseases", "find diseases", 
+        "diseases that have", "diseases with", "diseases associated"
+    ]
+    
+    for keyword in reverse_lookup_keywords:
+        if keyword.lower() in question.lower():
+            is_reverse_lookup = True
+            break
+    
+    # Select appropriate prompt template
+    if is_reverse_lookup and query_type in reverse_prompt_templates:
+        prompt_template = reverse_prompt_templates[query_type]
+    else:
+        prompt_template = prompt_templates.get(query_type, prompt_templates["general"])
+    
+    entity_text = ", ".join(entities) if entities else "the specified condition"
+    
+    # Generate response without graph (using pre-trained knowledge)
+    prompt_without_graph = _create_prompt(
+        prompt_template, 
+        entity_text, 
+        question, 
+        pretrained_instruction,
+        False
+    )
+    
+    response_without_graph = generate_response(prompt_without_graph, use_graph=False)
+    
+    # Generate response with graph
+    context = fetch_context_from_neo4j(entities, query_type)
+    
+    # Choose instruction based on context availability
+    instruction = with_context_instruction if context else without_context_instruction
+    
+    prompt_with_graph = _create_prompt(
+        prompt_template, 
+        entity_text, 
+        question, 
+        instruction,
+        True,
+        context
+    )
         
-        f.write("\n## Summary\n\n")
-        f.write(f"Average Factual Accuracy without Neo4j: {avg_without_db:.2%}\n\n")
-        f.write(f"Average Factual Accuracy with Neo4j: {avg_with_db:.2%}\n\n")
-        f.write(f"Overall Improvement: {(avg_with_db - avg_without_db):.2%}\n\n")
+    response_with_graph = generate_response(prompt_with_graph, use_graph=True)
 
-        # Create response comparison table
-        f.write("## Response Comparison\n\n")
-        f.write("| Question | Response without Neo4j | Response with Neo4j |\n")
-        f.write("|----------|----------------------|-------------------|\n")
+    # Evaluate factual accuracy
+    accuracy_without_graph = evaluate_factual_accuracy(response_without_graph)
+    accuracy_with_graph = evaluate_factual_accuracy(response_with_graph)
 
-        if isinstance(evaluations, list):
-            for eval_item in evaluations:
-                # Clean and format responses by replacing newlines and markdown content
-                response_without = eval_item["response_without_graph"]
-                response_with = eval_item["response_with_graph"]
-                
-                # Extract content between response=' and ' if present
-                if "response='" in response_without:
-                    response_without = response_without.split("response='")[1].split("'")[0]
-                if "response='" in response_with:
-                    response_with = response_with.split("response='")[1].split("'")[0]
-                
-                # Remove markdown formatting and clean up text
-                response_without = response_without.replace("\n", " ").replace("*", "").replace("---", "")
-                response_with = response_with.replace("\n", " ").replace("*", "").replace("---", "")
-                
-                # Write formatted row to markdown table
-                f.write(f"| {eval_item['question']} | {response_without} | {response_with} |\n")
+    # Return comprehensive results
+    return {
+        "question": question,
+        "query_type": query_type,
+        "is_reverse_lookup": is_reverse_lookup,
+        "prompt_without_graph": prompt_without_graph,
+        "prompt_with_graph": prompt_with_graph,
+        "response_without_graph": response_without_graph,
+        "accuracy_without_graph": accuracy_without_graph,
+        "response_with_graph": response_with_graph,
+        "accuracy_with_graph": accuracy_with_graph
+    }
+
+
+def _create_prompt(prompt_template, entity_text, question, instruction, use_graph, context=None):
+    """
+    Create a formatted prompt for the LLM based on template and parameters.
+    
+    Args:
+        prompt_template (str): The template to use for creating the prompt
+        entity_text (str): Text representing the entities in the question
+        question (str): The original question
+        instruction (str): Specific instructions for the model
+        use_graph (bool): Whether this prompt is for a response using Neo4j
+        context (str, optional): Neo4j context if available
+        
+    Returns:
+        str: Formatted prompt for the LLM
+    """
+    # Format the base prompt with entities and instruction
+    prompt = prompt_template.format(
+        entities=entity_text,
+        instruction=instruction
+    )
+    
+    # Add the question
+    prompt = f"{prompt}\n\nQuestion: {question}"
+    
+    # Common formatting instructions for both with and without Neo4j
+    formatting_instructions = """
+    
+Provide a concise, structured response with clearly stated medical facts. Format your answer as follows:
+
+1. Begin with a clear statement identifying the relationship between entities (e.g., "Influenza has the following symptoms:")
+2. List each fact as a separate, brief statement (e.g., "- Fever", "- Cough", etc.)
+3. Keep your response under 150 words
+4. Include only verified medical information
+5. Focus only on answering the specific question asked
+
+Your response should be easy to parse for factual statements about medical relationships."""
+    
+    # For non-graph prompts
+    if not use_graph:
+        prompt += formatting_instructions
+    # For graph prompts, add context if available
+    elif use_graph:
+        if context:
+            prompt += f"\n\nContext:\n{context}\n\nBased ONLY on the above context information{formatting_instructions}"
         else:
-            # Handle single evaluation case
-            response_without = evaluations["response_without_graph"]
-            response_with = evaluations["response_with_graph"]
+            prompt += "\n\nNo database information available. You should respond by clearly stating that you don't have knowledge about this specific question in your medical database. Your response should be brief and direct, such as: 'I don't have information about this in my medical database.'"
+    
+    return prompt
+
+
+def generate_report(evaluations, filename=None):
+    """
+    Generate a Markdown report from the evaluation results with comparison tables.
+    
+    Args:
+        evaluations (list or dict): Evaluation results from evaluate_responses
+        filename (str, optional): Output filename. If None, generates a timestamped filename
+        
+    Returns:
+        str: Path to the generated report file
+    """
+    # Generate filename with current date and time if not provided
+    if filename is None:
+        current_time = datetime.now().strftime("%d-%m-%y_%H-%M")
+        filename = f"report_{current_time}.md"
+    
+    # Ensure evaluations is a list even for single evaluations
+    if not isinstance(evaluations, list):
+        evaluations = [evaluations]
+    
+    try:
+        with open(filename, "w", encoding="utf-8") as f:
+            # Write report header
+            _write_report_header(f, evaluations)
             
-            # Extract content between response=' and ' if present
-            if "response='" in response_without:
-                response_without = response_without.split("response='")[1].split("'")[0]
-            if "response='" in response_with:
-                response_with = response_with.split("response='")[1].split("'")[0]
+            # Write factual accuracy comparison
+            accuracy_data = _calculate_accuracy_data(evaluations)
+            _write_accuracy_comparison(f, evaluations, accuracy_data)
             
-            # Clean and format responses
-            response_without = response_without.replace("\n", " ").replace("*", "").replace("---", "")
-            response_with = response_with.replace("\n", " ").replace("*", "").replace("---", "")
+            # Write summary section
+            _write_summary_section(f, accuracy_data)
             
-            # Write formatted row to markdown table
-            f.write(f"| {evaluations['question']} | {response_without} | {response_with} |\n")
+            # Write comprehensive comparison table
+            _write_comprehensive_comparison(f, evaluations)
+            
+            # Write Neo4j queries diagnostic table
+            _write_neo4j_queries_diagnostics(f, evaluations)
+                
+        print(f"Report generated as {filename}")
+        return filename
+    except Exception as e:
+        print(f"Error generating report: {str(e)}")
+        return None
+
+
+def _write_report_header(file, evaluations):
+    """Write the report header section to the file."""
+    file.write("# Medical Evaluation Report\n\n")
+    file.write(f"Generated on: {datetime.now().strftime('%d-%m-%Y at %H:%M')}\n\n")
+    file.write(f"Total questions evaluated: {len(evaluations)}\n\n")
+
+
+def _calculate_accuracy_data(evaluations):
+    """
+    Calculate accuracy statistics from evaluations.
+    
+    Args:
+        evaluations (list): List of evaluation results
+        
+    Returns:
+        dict: Dictionary containing accuracy statistics
+    """
+    # Initialize totals
+    total_without_db = 0
+    total_with_db = 0
+    question_count = len(evaluations)
+    
+    # Calculate totals
+    for eval_item in evaluations:
+        total_without_db += eval_item.get("accuracy_without_graph", 0)
+        total_with_db += eval_item.get("accuracy_with_graph", 0)
+    
+    # Calculate averages
+    avg_without_db = total_without_db / max(1, question_count)  # Avoid division by zero
+    avg_with_db = total_with_db / max(1, question_count)        # Avoid division by zero
+    improvement = avg_with_db - avg_without_db
+    
+    return {
+        "total_without_db": total_without_db,
+        "total_with_db": total_with_db,
+        "question_count": question_count,
+        "avg_without_db": avg_without_db,
+        "avg_with_db": avg_with_db,
+        "improvement": improvement
+    }
+
+
+def _write_accuracy_comparison(file, evaluations, accuracy_data):
+    """Write the factual accuracy comparison table to the file."""
+    file.write("## Factual Accuracy Comparison\n\n")
+    file.write("| No. | Question | Without Neo4j | With Neo4j |\n")
+    file.write("|-----|----------|---------------|------------|\n")
+    
+    for idx, eval_item in enumerate(evaluations, 1):
+        accuracy_without = eval_item.get("accuracy_without_graph", 0)
+        accuracy_with = eval_item.get("accuracy_with_graph", 0)
+        
+        # Format accuracies as percentages
+        accuracy_without_str = f"{accuracy_without:.2%}"
+        accuracy_with_str = f"{accuracy_with:.2%}"
+        
+        # Write table row
+        file.write(f"| {idx} | {eval_item['question']} | {accuracy_without_str} | {accuracy_with_str} |\n")
+
+
+def _write_summary_section(file, accuracy_data):
+    """Write the summary section to the file."""
+    file.write("\n## Summary\n\n")
+    file.write(f"Total Questions: {accuracy_data['question_count']}\n\n")
+    file.write(f"Average Factual Accuracy without Neo4j: {accuracy_data['avg_without_db']:.2%}\n\n")
+    file.write(f"Average Factual Accuracy with Neo4j: {accuracy_data['avg_with_db']:.2%}\n\n")
+    file.write(f"Overall Improvement: {accuracy_data['improvement']:.2%}\n\n")
+
+
+def _write_comprehensive_comparison(file, evaluations):
+    """Write the comprehensive comparison table to the file."""
+    file.write("## Comprehensive Comparison\n\n")
+    file.write("| No. | Original Question | Query Type | Without Neo4j |  With Neo4j |\n")
+    file.write("|-----|-------------------|------------|---------------|-------------|\n")
+
+    for idx, eval_item in enumerate(evaluations, 1):
+        # Format the cells for the table
+        without_neo4j_cell, with_neo4j_cell = _format_comparison_cells(eval_item)
+        
+        # Get the query type
+        query_type = eval_item.get("query_type", "general")
+        
+        # Write formatted row to markdown table
+        file.write(f"| {idx} | {eval_item['question']} | {query_type} | {without_neo4j_cell} | {with_neo4j_cell} |\n")
+
+
+def _format_comparison_cells(eval_item):
+    """
+    Format the cells for the comprehensive comparison table.
+    
+    Args:
+        eval_item (dict): Evaluation item containing prompt and response data
+        
+    Returns:
+        tuple: Formatted cells for without Neo4j and with Neo4j
+    """
+    # Get responses
+    response_without = _clean_response_text(eval_item.get("response_without_graph", ""))
+    response_with = _clean_response_text(eval_item.get("response_with_graph", ""))
+    
+    # Format prompts for readability in markdown
+    prompt_without = eval_item.get("prompt_without_graph", "").replace("\n", "<br>")
+    prompt_with = eval_item.get("prompt_with_graph", "").replace("\n", "<br>")
+    
+    # Create combined cells with both prompt and response
+    without_neo4j_cell = f"**Prompt:**<br>{prompt_without}<br><br>**Response:**<br>{response_without}"
+    with_neo4j_cell = f"**Prompt:**<br>{prompt_with}<br><br>**Response:**<br>{response_with}"
+    
+    return without_neo4j_cell, with_neo4j_cell
+
+
+def _write_neo4j_queries_diagnostics(file, evaluations):
+    """Write a table containing Neo4j query diagnostics for each question."""
+    file.write("\n## Neo4j Query Diagnostics\n\n")
+    file.write("| No. | Question | Query Type | Reverse Lookup | Context Query | Context Result | Entity Extraction Results |\n")
+    file.write("|-----|----------|------------|----------------|---------------|---------------|--------------------------|\n")
+    
+    # Reference the query templates defined in the application
+    forward_query_templates = {
+        "symptoms": "Disease → Symptoms",
+        "treatments": "Disease → Treatments",
+        "prevention": "Disease → Prevention Methods",
+        "risk_factors": "Disease → Risk Factors",
+        "age_groups": "Disease → Age Groups",
+        "gender": "Disease → Gender Distribution",
+        "prevalence": "Disease → Prevalence Distribution",
+        "general": "Disease → General Information"
+    }
+    
+    reverse_query_templates = {
+        "symptoms": "Symptom → Diseases",
+        "treatments": "Treatment → Diseases",
+        "prevention": "Prevention Method → Diseases",
+        "risk_factors": "Risk Factor → Diseases",
+        "age_groups": "Age Group → Diseases",
+        "gender": "Gender → Diseases"
+    }
+    
+    for idx, eval_item in enumerate(evaluations, 1):
+        question = eval_item['question']
+        query_type = eval_item.get('query_type', 'general')
+        is_reverse = eval_item.get('is_reverse_lookup', False)
+        
+        # Extract context from prompt with graph
+        context = ""
+        prompt_with_graph = eval_item.get('prompt_with_graph', '')
+        if 'Context:' in prompt_with_graph:
+            context_parts = prompt_with_graph.split('Context:')
+            if len(context_parts) > 1:
+                context_block = context_parts[1].split('Based ONLY')[0].strip()
+                context = context_block.replace('\n', '<br>')
+        
+        # Extract entities from question
+        entities, _ = analyze_question(question)
+        entities_str = ', '.join(entities) if entities else 'None detected'
+        
+        # Format the reverse lookup status
+        reverse_status = "Yes" if is_reverse else "No"
+        
+        # Determine query template used
+        query_template = ""
+        if is_reverse:
+            if query_type in reverse_query_templates:
+                query_template = reverse_query_templates[query_type]
+            else:
+                query_template = "No suitable reverse template"
+        else:
+            if query_type in forward_query_templates:
+                query_template = forward_query_templates[query_type]
+            else:
+                query_template = "General query template"
+        
+        # Write row
+        file.write(f"| {idx} | {question} | {query_type} | {reverse_status} | {query_template} | {context} | Entities: {entities_str} |\n")
+
+
+def _clean_response_text(response_text):
+    """
+    Clean and format response text for display in the report.
+    
+    Args:
+        response_text (str): Raw response text
+        
+    Returns:
+        str: Cleaned response text
+    """
+    # Extract content between response=' and ' if present
+    if "response='" in response_text:
+        response_text = response_text.split("response='")[1].split("'")[0]
+    
+    # Clean responses for markdown
+    return response_text.replace("\n", " ").replace("*", "").replace("---", "")
 
 
 # Example usage
@@ -406,9 +1063,6 @@ sample_questions = [
     "Which diseases have Sweating as a symptom?"
 ]
 
-# entities, query_type = analyze_question(question)
-# context = fetch_context_from_neo4j(entities, query_type)
-# print(context)
+
 evaluation = evaluate_responses(sample_questions)
 generate_report(evaluation)
-print("Report generated as report.md")
