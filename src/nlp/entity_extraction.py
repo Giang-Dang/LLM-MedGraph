@@ -122,7 +122,7 @@ def extract_entities(text):
     
     try:
         # Call Ollama LLM
-        logger.debug(f"Extracting entities from text: {text[:50]}...")
+        logger.debug(f"Extracting entities from text ({LLM_MODEL}): {text[:50]}...")
         response = ollama.generate(
             model=LLM_MODEL,
             prompt=prompt
@@ -154,8 +154,8 @@ def extract_entities(text):
                     'label': entity['label']
                 })
         
-        logger.info(f"Extracted {len(formatted_entities)} entities from text")
-        logger.debug(f"Extracted entities: {formatted_entities}")
+        logger.info(f"Extracted {len(formatted_entities)} entities from text ({LLM_MODEL})")
+        logger.debug(f"Extracted entities ({LLM_MODEL}): {formatted_entities}")
         return formatted_entities
         
     except Exception as e:
@@ -238,7 +238,7 @@ def analyze_question(question):
             query_type = "general"
             logger.warning(f"LLM returned invalid query type: {llm_query_type}, defaulting to 'general'")
             
-        logger.info(f"Question classified as query type: {query_type}")
+        logger.info(f"Question classified as query type ({LLM_MODEL}): {query_type}")
     
     except Exception as e:
         logger.error(f"Error using LLM to classify query type: {str(e)}")

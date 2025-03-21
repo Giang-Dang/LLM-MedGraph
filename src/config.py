@@ -73,6 +73,7 @@ NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "password")
 
 # LLM model settings
 LLM_MODEL = os.getenv("LLM_MODEL", "gemma3:4b")
+LLM_EVALUATION_MODEL = os.getenv("LLM_EVALUATION_MODEL", "gemma3:4b")
 
 # Entity types
 ENTITY_TYPES = {

@@ -124,35 +124,55 @@ def generate_markdown_table_report(eval_results, report_filename):
         # Write summary metrics
         f.write("## Summary Metrics\n\n")
         f.write(f"- **Number of Questions**: {metrics['num_questions']}\n")
-        f.write(f"- **Questions Evaluated**: {metrics['num_evaluated']}\n")
-        f.write(f"- **Average Score**: {metrics['average_score']:.2f}\n")
-        f.write(f"- **Total Score**: {metrics['total_score']:.2f}\n\n")
+        
+        # With Neo4j metrics
+        f.write("### With Neo4j\n")
+        f.write(f"- **Questions Evaluated**: {metrics['num_with_neo4j_evaluated']}\n")
+        f.write(f"- **Average Score**: {metrics['average_with_neo4j_score']:.2f}\n")
+        f.write(f"- **Total Score**: {metrics['total_with_neo4j_score']:.2f}\n\n")
+        
+        # Without Neo4j metrics
+        f.write("### Without Neo4j\n")
+        f.write(f"- **Questions Evaluated**: {metrics['num_without_neo4j_evaluated']}\n")
+        f.write(f"- **Average Score**: {metrics['average_without_neo4j_score']:.2f}\n")
+        f.write(f"- **Total Score**: {metrics['total_without_neo4j_score']:.2f}\n\n")
+        
+        # Comparison summary
+        diff = metrics['average_with_neo4j_score'] - metrics['average_without_neo4j_score']
+        f.write("### Comparison\n")
+        f.write(f"- **Score Difference (Neo4j vs. No Neo4j)**: {diff:.2f} ({'+' if diff >= 0 else ''}{diff*100:.2f}%)\n\n")
         
         # Write results table
         f.write("## Evaluation Results\n\n")
-        f.write("| No. | Question | System Answer | Expected Answer | Score | Explanation |\n")
-        f.write("|-----|----------|---------------|-----------------|-------|-------------|\n")
+        f.write("| No. | Question | With Neo4j Answer | Without Neo4j Answer | Expected Answer | With Neo4j Score | Without Neo4j Score |\n")
+        f.write("|-----|----------|-------------------|----------------------|-----------------|------------------|--------------------|\n")
         
         for idx, result in enumerate(results, 1):
             # Format the question
-            question = result['question'].replace("\n", " ")
+            question = result['question'].replace("\n", " ").replace("|", "\\|")
             
-            # Format the system answer
-            system_answer = result['system_answer'].replace("\n", "<br>").replace("|", "\\|")
+            # Format the system answers
+            with_neo4j_answer = result['with_neo4j_answer'].replace("\n", "<br>").replace("|", "\\|") if result['with_neo4j_answer'] else "N/A"
+            if len(with_neo4j_answer) > 80:
+                with_neo4j_answer = with_neo4j_answer[:77] + "..."
+                
+            without_neo4j_answer = result['without_neo4j_answer'].replace("\n", "<br>").replace("|", "\\|") if result['without_neo4j_answer'] else "N/A"
+            if len(without_neo4j_answer) > 80:
+                without_neo4j_answer = without_neo4j_answer[:77] + "..."
             
             # Format the expected answer
             expected_answer = result['expected_answer'].replace("\n", "<br>").replace("|", "\\|") if result['expected_answer'] else "N/A"
+            if len(expected_answer) > 80:
+                expected_answer = expected_answer[:77] + "..."
             
-            # Format the score
-            score = f"{result['score']:.2f}" if result['score'] is not None else "N/A"
-            
-            # Format the explanation
-            explanation = result['explanation'].replace("\n", "<br>").replace("|", "\\|") if 'explanation' in result else "N/A"
+            # Format the scores
+            with_neo4j_score = f"{result['with_neo4j_score']:.2f}" if result['with_neo4j_score'] is not None else "N/A"
+            without_neo4j_score = f"{result['without_neo4j_score']:.2f}" if result['without_neo4j_score'] is not None else "N/A"
             
             # Write table row
-            f.write(f"| {idx} | {question} | {system_answer} | {expected_answer} | {score} | {explanation} |\n")
+            f.write(f"| {idx} | {question} | {with_neo4j_answer} | {without_neo4j_answer} | {expected_answer} | {with_neo4j_score} | {without_neo4j_score} |\n")
         
-        # Write individual detailed results
+        # Write detailed results section
         f.write("\n## Detailed Results\n\n")
         
         for idx, result in enumerate(results, 1):
@@ -167,18 +187,35 @@ def generate_markdown_table_report(eval_results, report_filename):
             f.write(f"{result['query']}\n")
             f.write("```\n\n")
             
+            # With Neo4j section
+            f.write("#### With Neo4j\n\n")
             f.write("**System Answer**:\n```\n")
-            f.write(f"{result['system_answer']}\n")
+            f.write(f"{result['with_neo4j_answer']}\n")
             f.write("```\n\n")
             
+            if result['with_neo4j_score'] is not None:
+                f.write(f"**Score**: {result['with_neo4j_score']:.2f}\n\n")
+                if 'with_neo4j_explanation' in result:
+                    f.write(f"**Explanation**: {result['with_neo4j_explanation']}\n\n")
+            
+            # Without Neo4j section
+            f.write("#### Without Neo4j\n\n")
+            f.write("**System Answer**:\n```\n")
+            f.write(f"{result['without_neo4j_answer']}\n")
+            f.write("```\n\n")
+            
+            if result['without_neo4j_score'] is not None:
+                f.write(f"**Score**: {result['without_neo4j_score']:.2f}\n\n")
+                if 'without_neo4j_explanation' in result:
+                    f.write(f"**Explanation**: {result['without_neo4j_explanation']}\n\n")
+            
+            # Expected answer
             if result['expected_answer']:
-                f.write("**Expected Answer**:\n```\n")
+                f.write("#### Expected Answer\n\n")
+                f.write("```\n")
                 f.write(f"{result['expected_answer']}\n")
                 f.write("```\n\n")
-                
-                f.write(f"**Score**: {result['score']:.2f}\n\n")
-                f.write(f"**Explanation**: {result['explanation']}\n\n")
             else:
                 f.write("*No expected answer provided for evaluation.*\n\n")
             
-            f.write("---\n\n") 
+            f.write("---\n\n")

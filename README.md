@@ -101,6 +101,7 @@ NEO4J_URI=bolt://localhost:7687
 NEO4J_USERNAME=neo4j
 NEO4J_PASSWORD=your_password
 LLM_MODEL=gemma3:4b
+LLM_EVALUATION_MODEL=gemma3:4b
 LOG_LEVEL=INFO
 LOG_DIR=logs
 ```
@@ -139,6 +140,14 @@ Ask a single question:
 python -m src.main --mode single --question "What are the symptoms of Influenza?" --use_graph
 ```
 
+### QA Evaluation
+
+The system now includes a robust Question-Answer evaluation mechanism:
+
+```bash
+python -m src.main --mode qa_evaluate --report my_evaluation.md
+```
+
 ### Evaluation Mode
 
 Evaluate the system on sample questions and generate a report:
@@ -147,13 +156,6 @@ Evaluate the system on sample questions and generate a report:
 python -m src.main --mode evaluate --report my_evaluation.md
 ```
 
-### QA Evaluation
-
-The system now includes a robust Question-Answer evaluation mechanism:
-
-```bash
-python -m src.main --mode qa_evaluate --report my_evaluation.md
-```
 
 This mode evaluates the system using predefined question-answer pairs from `config.py`. The evaluation:
 

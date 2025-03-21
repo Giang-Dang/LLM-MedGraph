@@ -19,7 +19,7 @@ def generate_response(question, use_graph=False, context=None):
     Returns:
         str: The generated response from the LLM
     """
-    logger.info(f'Generating response for question: "{question}", using graph: {use_graph}')
+    logger.info(f'Generating response for question ({LLM_MODEL}): "{question}", using graph: {use_graph}')
     
     # If context is a list of dictionaries (from Neo4j), format it
     if isinstance(context, list):

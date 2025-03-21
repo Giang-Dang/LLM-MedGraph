@@ -6,8 +6,9 @@ import ollama
 from datetime import datetime
 from difflib import SequenceMatcher
 # Change relative imports to absolute imports
-from src.config import LLM_MODEL, get_logger
+from src.config import LLM_EVALUATION_MODEL, get_logger
 from src.nlp.entity_extraction import analyze_question
+from src.nlp.llm import generate_response
 from src.query.query_generator import create_query_with_llm, execute_query
 
 # Get module-specific logger
@@ -26,7 +27,8 @@ def evaluate_question_answer_pairs(qa_pairs, report_filename):
     """
     logger.info(f"Starting evaluation on {len(qa_pairs)} question-answer pairs")
     results = []
-    total_score = 0
+    total_with_neo4j_score = 0
+    total_without_neo4j_score = 0
     
     for idx, qa_pair in enumerate(qa_pairs):
         question = qa_pair["question"]
@@ -42,21 +44,25 @@ def evaluate_question_answer_pairs(qa_pairs, report_filename):
         
         # Check if query execution returned an error
         if query_results and "error" in query_results[0]:
-            system_answer = f"Error: {query_results[0]['error']}"
-            score = 0
-            explanation = "Query execution failed"
+            with_neo4j_answer = f"Error: {query_results[0]['error']}"
+            with_neo4j_score = 0
+            with_neo4j_explanation = "Query execution failed"
             logger.warning(f"Query execution failed: {query_results[0]['error']}")
         else:
             # Format the answer based on query results
-            system_answer = format_answer(question, entities, query_type, query_results)
+            with_neo4j_answer = generate_response(question, use_graph=True, context=query_results)
+            without_neo4j_answer = generate_response(question, use_graph=False)
             
             # If expected answer is provided, evaluate the system answer
             if expected_answer:
-                score, explanation = evaluate_answer(system_answer, expected_answer)
-                logger.debug(f"Answer evaluation score: {score}, explanation: {explanation}")
+                with_neo4j_score, with_neo4j_explanation = evaluate_answer(with_neo4j_answer, expected_answer)
+                without_neo4j_score, without_neo4j_explanation = evaluate_answer(without_neo4j_answer, expected_answer)
+                logger.debug(f"Answer evaluation score: {with_neo4j_score}, explanation: {with_neo4j_explanation}")
             else:
-                score = None
-                explanation = "No expected answer provided"
+                with_neo4j_score = None
+                with_neo4j_explanation = "No expected answer provided"
+                without_neo4j_score = None
+                without_neo4j_explanation = "No expected answer provided"
                 logger.debug("No expected answer provided for evaluation")
         
         # Store the result
@@ -66,31 +72,43 @@ def evaluate_question_answer_pairs(qa_pairs, report_filename):
             "query_type": query_type,
             "query": query,
             "query_results": query_results,
-            "system_answer": system_answer,
+            "with_neo4j_answer": with_neo4j_answer,
+            "without_neo4j_answer": without_neo4j_answer,
             "expected_answer": expected_answer,
-            "score": score,
-            "explanation": explanation
+            "with_neo4j_score": with_neo4j_score,
+            "without_neo4j_score": without_neo4j_score,
+            "with_neo4j_explanation": with_neo4j_explanation,
+            "without_neo4j_explanation": without_neo4j_explanation
         }
         
         results.append(result)
         
-        if score is not None:
-            total_score += score
+        if with_neo4j_score is not None:
+            total_with_neo4j_score += with_neo4j_score
+
+        if without_neo4j_score is not None:
+            total_without_neo4j_score += without_neo4j_score
     
     # Calculate overall metrics
-    num_evaluated = sum(1 for r in results if r["score"] is not None)
-    average_score = total_score / num_evaluated if num_evaluated > 0 else 0
+    num_with_neo4j_evaluated = sum(1 for r in results if r["with_neo4j_score"] is not None)
+    num_without_neo4j_evaluated = sum(1 for r in results if r["without_neo4j_score"] is not None)
+    average_with_neo4j_score = total_with_neo4j_score / num_with_neo4j_evaluated if num_with_neo4j_evaluated > 0 else 0
+    average_without_neo4j_score = total_without_neo4j_score / num_without_neo4j_evaluated if num_without_neo4j_evaluated > 0 else 0
     
-    logger.info(f"Evaluation complete. Average score: {average_score:.2f}, Total score: {total_score:.2f}")
+    logger.info(f"Evaluation complete. Average score: {average_with_neo4j_score:.2f}, Total score: {total_with_neo4j_score:.2f}")
+    logger.info(f"Evaluation complete. Average score: {average_without_neo4j_score:.2f}, Total score: {total_without_neo4j_score:.2f}")
     
     # Generate the report
     evaluation_report = {
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "metrics": {
             "num_questions": len(qa_pairs),
-            "num_evaluated": num_evaluated,
-            "average_score": average_score,
-            "total_score": total_score
+            "num_with_neo4j_evaluated": num_with_neo4j_evaluated,
+            "average_with_neo4j_score": average_with_neo4j_score,
+            "total_with_neo4j_score": total_with_neo4j_score,
+            "num_without_neo4j_evaluated": num_without_neo4j_evaluated,
+            "average_without_neo4j_score": average_without_neo4j_score,
+            "total_without_neo4j_score": total_without_neo4j_score
         },
         "results": results
     }
@@ -100,103 +118,6 @@ def evaluate_question_answer_pairs(qa_pairs, report_filename):
         save_evaluation_report(evaluation_report, report_filename)
     
     return evaluation_report
-
-def format_answer(question, entities, query_type, query_results):
-    """
-    Format the answer based on query results.
-    
-    Args:
-        question (str): The original question
-        entities (list): Extracted entities
-        query_type (str): Type of query
-        query_results (list): Results from Neo4j query
-        
-    Returns:
-        str: Formatted answer
-    """
-    logger.debug(f"Formatting answer for question: {question}")
-    
-    # If no results were found
-    if not query_results or len(query_results) == 0:
-        logger.debug("No results found for question")
-        return "I couldn't find any information for your question."
-    
-    # Use LLM to generate a natural language answer
-    prompt = f"""
-    Question: {question}
-    
-    Query Type: {query_type}
-    Entities: {', '.join(entities) if entities else 'None'}
-    
-    Database Results: 
-    {json.dumps(query_results, indent=2)}
-    
-    Format a clear, concise answer based on these results. 
-    If multiple diseases or concepts are returned, mention each with its relevant information.
-    Make the answer conversational but informative. 
-    If no relevant information was found, say so clearly.
-    
-    Answer:
-    """
-    
-    try:
-        # Call the LLM to format the answer
-        logger.debug("Using LLM to format answer")
-        response = ollama.generate(
-            model=LLM_MODEL,
-            prompt=prompt
-        )
-        
-        # Extract the response
-        if hasattr(response, "response"):
-            formatted_answer = response.response.strip()
-        elif hasattr(response, "text"):
-            formatted_answer = response.text.strip()
-        else:
-            formatted_answer = str(response).strip()
-        
-        logger.debug(f"LLM formatted answer (first 100 chars): {formatted_answer[:100]}...")
-        return formatted_answer
-        
-    except Exception as e:
-        logger.error(f"Error formatting answer with LLM: {str(e)}")
-        
-        # Fall back to simple formatting
-        logger.debug("Falling back to template-based answer formatting")
-        formatted_answer = "Based on the medical database:\n\n"
-        
-        for result in query_results:
-            if "disease" in result:
-                disease = result["disease"]
-                formatted_answer += f"For {disease}:\n"
-                
-                # Add symptoms if available
-                if "symptoms" in result and result["symptoms"]:
-                    symptoms = result["symptoms"]
-                    if symptoms:
-                        formatted_answer += f"- Symptoms: {', '.join(symptoms)}\n"
-                
-                # Add treatments if available
-                if "treatments" in result and result["treatments"]:
-                    treatments = result["treatments"]
-                    if treatments:
-                        formatted_answer += f"- Treatments: {', '.join(treatments)}\n"
-                
-                # Add preventions if available
-                if "preventions" in result and result["preventions"]:
-                    preventions = result["preventions"]
-                    if preventions:
-                        formatted_answer += f"- Preventions: {', '.join(preventions)}\n"
-                
-                # Add risk factors if available
-                if "risk_factors" in result and result["risk_factors"]:
-                    risk_factors = result["risk_factors"]
-                    if risk_factors:
-                        formatted_answer += f"- Risk Factors: {', '.join(risk_factors)}\n"
-                
-                formatted_answer += "\n"
-        
-        return formatted_answer
 
 def evaluate_answer(system_answer, expected_answer):
     """
@@ -233,7 +154,7 @@ def evaluate_answer(system_answer, expected_answer):
         # Call the LLM to evaluate the answer
         logger.debug("Using LLM to evaluate answer")
         response = ollama.generate(
-            model=LLM_MODEL,
+            model=LLM_EVALUATION_MODEL,
             prompt=prompt
         )
         
@@ -255,8 +176,8 @@ def evaluate_answer(system_answer, expected_answer):
         # Ensure score is between 0 and 1
         score = max(0.0, min(1.0, score))
         
-        logger.info(f"LLM evaluation score: {score:.2f}")
-        logger.debug(f"LLM evaluation explanation: {explanation}")
+        logger.info(f"LLM evaluation ({LLM_EVALUATION_MODEL}) score: {score:.2f}")
+        logger.debug(f"LLM evaluation ({LLM_EVALUATION_MODEL}) explanation: {explanation}")
         
         return score, explanation
         
@@ -277,7 +198,7 @@ def save_evaluation_report(evaluation_report, report_filename):
     Save the evaluation report to a file.
     
     Args:
-        evaluation_report (dict): The evaluation report data
+        evaluation_report (dict): The evaluation report data containing results from evaluate_question_answer_pairs
         report_filename (str): Filename for the report
     """
     logger.info(f"Saving evaluation report to {report_filename}")
@@ -306,7 +227,7 @@ def generate_markdown_report(evaluation_report):
     Generate a markdown report from the evaluation data.
     
     Args:
-        evaluation_report (dict): The evaluation report data
+        evaluation_report (dict): The evaluation report data containing results with and without Neo4j
         
     Returns:
         str: Markdown formatted report
@@ -317,18 +238,56 @@ def generate_markdown_report(evaluation_report):
     results = evaluation_report["results"]
     timestamp = evaluation_report["timestamp"]
     
-    md = f"# Medical Knowledge Graph Evaluation Report\n\n"
+    md = f"# Neo4j Question-Answer Evaluation Report\n\n"
     md += f"Generated: {timestamp}\n\n"
     
     # Metrics section
     md += "## Summary Metrics\n\n"
     md += f"- **Number of Questions**: {metrics['num_questions']}\n"
-    md += f"- **Questions Evaluated**: {metrics['num_evaluated']}\n"
-    md += f"- **Average Score**: {metrics['average_score']:.2f}\n"
-    md += f"- **Total Score**: {metrics['total_score']:.2f}\n\n"
     
-    # Results section
-    md += "## Individual Question Results\n\n"
+    # With Neo4j metrics
+    md += "### With Neo4j\n"
+    md += f"- **Questions Evaluated**: {metrics['num_with_neo4j_evaluated']}\n"
+    md += f"- **Average Score**: {metrics['average_with_neo4j_score']:.2f}\n"
+    md += f"- **Total Score**: {metrics['total_with_neo4j_score']:.2f}\n\n"
+    
+    # Without Neo4j metrics
+    md += "### Without Neo4j\n"
+    md += f"- **Questions Evaluated**: {metrics['num_without_neo4j_evaluated']}\n"
+    md += f"- **Average Score**: {metrics['average_without_neo4j_score']:.2f}\n"
+    md += f"- **Total Score**: {metrics['total_without_neo4j_score']:.2f}\n\n"
+    
+    # Comparison summary
+    diff = metrics['average_with_neo4j_score'] - metrics['average_without_neo4j_score']
+    md += "### Comparison\n"
+    md += f"- **Score Difference (Neo4j vs. No Neo4j)**: {diff:.2f} ({'+' if diff >= 0 else ''}{diff*100:.2f}%)\n\n"
+    
+    # Add a summary table of all results
+    md += "## Evaluation Results\n\n"
+    md += "| No. | Question | With Neo4j Answer | Without Neo4j Answer | Expected Answer | With Neo4j Score | Without Neo4j Score |\n"
+    md += "|-----|----------|-------------------|----------------------|-----------------|------------------|--------------------|\n"
+    
+    for idx, result in enumerate(results):
+        # Truncate and format answers for table display
+        with_neo4j_answer = result['with_neo4j_answer'].replace('\n', '<br>') if result['with_neo4j_answer'] else "N/A"
+        if len(with_neo4j_answer) > 80:
+            with_neo4j_answer = with_neo4j_answer[:77] + "..."
+            
+        without_neo4j_answer = result['without_neo4j_answer'].replace('\n', '<br>') if result['without_neo4j_answer'] else "N/A"
+        if len(without_neo4j_answer) > 80:
+            without_neo4j_answer = without_neo4j_answer[:77] + "..."
+            
+        exp_answer = result['expected_answer'].replace('\n', '<br>') if result['expected_answer'] else "N/A"
+        if len(exp_answer) > 80:
+            exp_answer = exp_answer[:77] + "..."
+        
+        with_neo4j_score = f"{result['with_neo4j_score']:.2f}" if result['with_neo4j_score'] is not None else "N/A"
+        without_neo4j_score = f"{result['without_neo4j_score']:.2f}" if result['without_neo4j_score'] is not None else "N/A"
+        
+        md += f"| {idx+1} | {result['question']} | {with_neo4j_answer} | {without_neo4j_answer} | {exp_answer} | {with_neo4j_score} | {without_neo4j_score} |\n"
+    
+    # Detailed Results section
+    md += "\n## Detailed Results\n\n"
     
     for idx, result in enumerate(results):
         md += f"### Question {idx+1}: {result['question']}\n\n"
@@ -340,15 +299,34 @@ def generate_markdown_report(evaluation_report):
         md += f"{result['query']}\n"
         md += "```\n\n"
         
-        md += "**System Answer**:\n"
-        md += f"{result['system_answer']}\n\n"
+        # With Neo4j section
+        md += "#### With Neo4j\n\n"
+        md += "**System Answer**:\n```\n"
+        md += f"{result['with_neo4j_answer']}\n"
+        md += "```\n\n"
         
+        if result['with_neo4j_score'] is not None:
+            md += f"**Score**: {result['with_neo4j_score']:.2f}\n\n"
+            if 'with_neo4j_explanation' in result:
+                md += f"**Explanation**: {result['with_neo4j_explanation']}\n\n"
+        
+        # Without Neo4j section
+        md += "#### Without Neo4j\n\n"
+        md += "**System Answer**:\n```\n"
+        md += f"{result['without_neo4j_answer']}\n"
+        md += "```\n\n"
+        
+        if result['without_neo4j_score'] is not None:
+            md += f"**Score**: {result['without_neo4j_score']:.2f}\n\n"
+            if 'without_neo4j_explanation' in result:
+                md += f"**Explanation**: {result['without_neo4j_explanation']}\n\n"
+        
+        # Expected answer
         if result['expected_answer']:
-            md += "**Expected Answer**:\n"
-            md += f"{result['expected_answer']}\n\n"
-            
-            md += f"**Score**: {result['score']:.2f}\n\n"
-            md += f"**Explanation**: {result['explanation']}\n\n"
+            md += "#### Expected Answer\n\n"
+            md += "```\n"
+            md += f"{result['expected_answer']}\n"
+            md += "```\n\n"
         else:
             md += "*No expected answer provided for evaluation.*\n\n"
         

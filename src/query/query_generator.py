@@ -191,7 +191,7 @@ def create_query_with_llm(entities, query_type):
         # Remove any cypher or other language markers
         query = query.replace("cypher", "").strip()
         
-        logger.info(f"Generated Cypher query with LLM: {query[:100]}...")
+        logger.info(f"Generated Cypher query with LLM ({LLM_MODEL}): {query[:100]}...")
         
         return query
     
