@@ -3,6 +3,7 @@ import ollama
 import medspacy
 from medspacy.ner import TargetMatcher, TargetRule
 from datetime import datetime
+import json
 
 # Initialize Neo4j driver
 neo4j_uri = "bolt://localhost:7687"
@@ -84,17 +85,96 @@ all_rules = disease_rules + symptom_rules + prevention_rules + treatment_rules +
 target_matcher.add(all_rules)
 
 
-def extract_medical_entities(text):
-    """Extract medical entities from text using medspaCy."""
-    doc = nlp(text)
-    entities = []
-    for ent in doc.ents:
-        entities.append({
-            'entity': ent.text,
-            'label': ent.label_
-        })
-    print(f'extract_medical_entities > results for {text} : {entities}')
-    return entities
+# def extract_medical_entities(text):
+#     """Extract medical entities from text using medspaCy."""
+#     doc = nlp(text.lower())
+#     entities = []
+#     for ent in doc.ents:
+#         entities.append({
+#             'entity': ent.text,
+#             'label': ent.label_
+#         })
+#     print(f'extract_medical_entities > results for {text} : {entities}')
+#     return entities
+
+def extract_entities(text):
+    """
+    Extract medical entities from text using an LLM from Ollama.
+    
+    This function sends the input text to an LLM to identify medical entities
+    such as diseases, symptoms, treatments, and more.
+    
+    Args:
+        text (str): The text to extract entities from
+        
+    Returns:
+        list: A list of dictionaries containing entity name and type, in format {'entity': 'name', 'label': 'TYPE'}
+    """
+    prompt = f"""
+    Extract all medical entities from the following text and classify them by type.
+    
+    Text: "{text}"
+    
+    Extract entities of these types:
+    - DISEASE (e.g., Influenza, Diabetes, Asthma)
+    - SYMPTOM (e.g., Fever, Cough, Headache)
+    - TREATMENT (e.g., Insulin Therapy, Pain Relievers)
+    - PREVENTION (e.g., Vaccination, Regular Exercise)
+    - RISK_FACTOR (e.g., Smoking, Obesity)
+    - AGE_GROUP (e.g., Children, Adults, Elderly)
+    - GENDER (e.g., Male, Female)
+    
+    Format your response as a JSON array with objects containing 'entity' and 'label' fields:
+    [
+      {{"entity": "Disease Name", "label": "DISEASE"}},
+      {{"entity": "Symptom Name", "label": "SYMPTOM"}},
+      ...
+    ]
+    
+    Return ONLY the JSON array, nothing else.
+    """
+    
+    try:
+        # Call Ollama LLM
+        response = ollama.generate(
+            model="gemma3:4b",
+            prompt=prompt
+        )
+        
+        # Extract the response text
+        if hasattr(response, "response"):
+            llm_response = response.response.strip()
+        elif hasattr(response, "text"):
+            llm_response = response.text.strip()
+        else:
+            llm_response = str(response).strip()
+        
+        # Clean up the response to extract just the JSON part
+        if "```json" in llm_response:
+            json_part = llm_response.split("```json")[1].split("```")[0].strip()
+            llm_response = json_part
+        elif "```" in llm_response:
+            json_part = llm_response.split("```")[1].split("```")[0].strip()
+            llm_response = json_part
+        
+        
+        entities = json.loads(llm_response)
+        
+        formatted_entities = []
+        for entity in entities:
+            if isinstance(entity, dict) and 'entity' in entity and 'label' in entity:
+                formatted_entities.append({
+                    'entity': entity['entity'],
+                    'label': entity['label']
+                })
+        
+        print(f'extract_entities_with_llm > results for {text}: {formatted_entities}')
+        return formatted_entities
+        
+    except Exception as e:
+        print(f"Error extracting entities with LLM: {str(e)}")
+        # Fall back to rule-based extraction if LLM fails
+        return []
 
 
 def verify_entity_relationship(entity1, entity2):
@@ -111,348 +191,462 @@ def verify_entity_relationship(entity1, entity2):
 
 
 def analyze_question(question):
-    """Analyze the question to identify entities and determine the type of medical information requested."""
-    doc = nlp(question.lower())
-    entities = [ent.text for ent in doc.ents]
+    """
+    Analyze the question to identify entities and determine the type of medical information requested.
+    Uses LLM to classify the query type instead of hardcoded keyword matching.
+    """
+    entities_data = extract_entities(question.lower())
+    entities = [entity['entity'] for entity in entities_data]
+    
+    query_types = [
+        "symptoms",      
+        "treatments",    
+        "prevention",    
+        "risk_factors",  
+        "age_groups",    
+        "gender",        
+        "prevalence",    
+        "general"        
+    ]
+    
+    # If no entities were detected, try to manually extract common medical terms
+    if len(entities) == 0:
+        # Check for common symptoms that might not be detected as entities
+        common_symptoms = ["fever", "cough", "fatigue", "headache", "nausea", "dizziness", 
+                          "chest pain", "shortness of breath", "sweating", "blurred vision"]
+        
+        found_symptoms = []
+        for symptom in common_symptoms:
+            if symptom.lower() in question.lower():
+                found_symptoms.append(symptom.title())
+                
+        if found_symptoms:
+            entities = found_symptoms
+    
+    # Use LLM to determine the query type
+    prompt = f"""
+        Given the following medical question: "{question}"
 
-    keywords_to_query_type = {
-        # Disease-Symptom relationships
-        "symptom": "symptoms",
-        "symptoms": "symptoms",
-        
-        # Disease-Treatment relationships
-        "treatment": "treatments",
-        "treat": "treatments",
-        "medication": "treatments",
-        "therapy": "treatments",
-        "drug": "treatments",
-        
-        # Disease-Prevention relationships
-        "prevention": "prevention",
-        "prevent": "prevention",
-        "preventive": "prevention",
-        
-        # Disease-Risk Factor relationships
-        "risk": "risk_factors",
-        "risk factor": "risk_factors",
-        "cause": "risk_factors",
-        "causes": "risk_factors",
-        
-        # Disease-Age Group relationships
-        "age": "age_groups",
-        "age group": "age_groups",
-        "children": "age_groups",
-        "adults": "age_groups",
-        "elderly": "age_groups",
-        
-        # Disease-Gender relationships
-        "gender": "gender",
-        "sex": "gender",
-        "male": "gender",
-        "female": "gender",
-        
-        # Disease-Prevalence (special case for gender and age group relationships)
-        "prevalence": "prevalence",
-        "common": "prevalence",
-        "affects": "prevalence"
-    }
+        Classify the type of information being requested into ONE of these categories:
+        1. symptoms - Questions about symptoms of a disease or diseases that have certain symptoms
+        2. treatments - Questions about treatments for a disease or diseases treated by specific methods
+        3. prevention - Questions about how to prevent a disease or diseases prevented by specific methods
+        4. risk_factors - Questions about risk factors for a disease
+        5. age_groups - Questions about which age groups are affected by a disease
+        6. gender - Questions about gender distribution of a disease
+        7. prevalence - Questions about how common a disease is
+        8. general - General questions about a disease that don't fit other categories
 
-    query_type = "general"
-    for keyword, q_type in keywords_to_query_type.items():
-        if keyword in question.lower():
-            query_type = q_type
-            break
+        Respond with ONLY the category name, nothing else.
+    """
+    
+    # Get the query type from the LLM
+    try:
+        response = ollama.generate(
+            model="gemma3:4b",
+            prompt=prompt
+        )
+        
+        # Extract the response text
+        if hasattr(response, "response"):
+            llm_query_type = response.response.strip().lower()
+        elif hasattr(response, "text"):
+            llm_query_type = response.text.strip().lower()
+        else:
+            llm_query_type = str(response).strip().lower()
+        
+        # Make sure the result is a valid query type
+        if llm_query_type in query_types:
+            query_type = llm_query_type
+        else:
+            # Default to general if the LLM response isn't a valid query type
+            query_type = "general"
+            
+        print(f"LLM classified the question '{question}' as query type: {query_type}")
+    
+    except Exception as e:
+        print(f"Error using LLM to classify query type: {str(e)}")
+        
+        # Fallback to simplified keyword matching if LLM fails
+        simplified_keywords = {
+            "symptom": "symptoms",
+            "treatment": "treatments",
+            "prevent": "prevention",
+            "risk": "risk_factors",
+            "age": "age_groups", 
+            "gender": "gender",
+            "common": "prevalence"
+        }
+        
+        query_type = "general"
+        for keyword, q_type in simplified_keywords.items():
+            if keyword in question.lower():
+                query_type = q_type
+                break
+                
+        print(f"Fallback classification for '{question}': {query_type}")
+    
+    # Check if this is a reverse lookup (asking about diseases related to properties)
+    reverse_lookup_keywords = [
+        "which disease", "what disease", "which diseases", "what diseases", 
+        "list diseases", "find diseases", "diseases that have", "diseases with", 
+        "diseases associated", "disease is linked", "diseases are linked", 
+        "disease has", "diseases have", "linked to"
+    ]
+    
+    is_reverse_lookup = any(keyword in question.lower() for keyword in reverse_lookup_keywords)
+    if is_reverse_lookup:
+        print(f"Detected reverse lookup query: '{question}'")
 
     return entities, query_type
 
 
-def fetch_context_from_neo4j(entities, query_type):
-    """
-    Fetch relevant context from Neo4j based on entities and query type.
+# def fetch_context_from_neo4j(entities, query_type):
+#     """
+#     Fetch relevant context from Neo4j based on entities and query type.
     
-    This function handles three types of lookups:
-    1. Forward lookups (disease → property)
-    2. Reverse lookups (property → disease)
-    3. List all queries (showing all relationships of a specific type)
+#     This function handles four types of lookups:
+#     1. Forward lookups (disease → property)
+#     2. Reverse lookups (property → disease)
+#     3. List all queries (showing all relationships of a specific type)
+#     4. Multi-entity lookups (finding diseases related to multiple symptoms/treatments/etc.)
     
-    Args:
-        entities (list): List of entity names extracted from the question
-        query_type (str): Type of information being requested (symptoms, treatments, etc.)
+#     Args:
+#         entities (list): List of entity names extracted from the question
+#         query_type (str): Type of information being requested (symptoms, treatments, etc.)
         
-    Returns:
-        str: Formatted context text containing relevant medical information
-    """
-    context = ""
+#     Returns:
+#         str: Formatted context text containing relevant medical information
+#     """
+#     context = ""
     
-    # Handle "list all" type queries when no specific entities are provided
-    if len(entities) == 0:
-        context = _handle_list_all_query(query_type)
-        if context:
-            return context
+#     # Handle "list all" type queries when no specific entities are provided
+#     if len(entities) == 0:
+#         context = _handle_list_all_query(query_type)
+#         if context:
+#             return context
     
-    # Process each entity from the question
-    for entity in entities:
-        # Try forward lookup first (disease → properties)
-        forward_result = _execute_forward_lookup(entity, query_type)
-        if forward_result:
-            context += forward_result
-            continue
+#     # Maps for node types, relationships, and display names
+#     query_type_mapping = {
+#         "symptoms": {"node": "Symptom", "relationship": "HAS_SYMPTOM", "display": "symptoms"},
+#         "treatments": {"node": "Treatment", "relationship": "HAS_TREATMENT", "display": "treatments"},
+#         "prevention": {"node": "Prevention", "relationship": "HAS_PREVENTION", "display": "prevention methods"},
+#         "risk_factors": {"node": "RiskFactor", "relationship": "HAS_RISK_FACTOR", "display": "risk factors"},
+#         "age_groups": {"node": "AgeGroup", "relationship": "AFFECTS", "display": "age groups"},
+#         "gender": {"node": "Gender", "relationship": "AFFECTS", "display": "genders"}
+#     }
+    
+#     # Check if this is a multi-entity reverse lookup
+#     if query_type in query_type_mapping and len(entities) > 1:
+#         # Count entity types to determine if this is a reverse lookup
+#         with driver.session() as session:
+#             entity_count = 0
+#             disease_count = 0
             
-        # If forward lookup fails, try reverse lookup (property → diseases)
-        reverse_result = _execute_reverse_lookup(entity, query_type)
-        if reverse_result:
-            context += reverse_result
-    
-    return context
-
-
-def _handle_list_all_query(query_type):
-    """
-    Handle queries that request information about all relationships of a certain type.
-    
-    Args:
-        query_type (str): Type of medical information requested
-        
-    Returns:
-        str: Formatted context with information about all entities of the requested type
-    """
-    # Define templates for listing all relationships
-    list_all_templates = {
-        "symptoms": """
-            MATCH (d:Disease)-[:HAS_SYMPTOM]->(s:Symptom)
-            RETURN collect(DISTINCT {disease: d.name, symptoms: collect(s.name)}) AS disease_symptoms
-        """,
-        "treatments": """
-            MATCH (d:Disease)-[:HAS_TREATMENT]->(t:Treatment)
-            RETURN collect(DISTINCT {disease: d.name, treatments: collect(t.name)}) AS disease_treatments
-        """,
-        "prevention": """
-            MATCH (d:Disease)-[:HAS_PREVENTION]->(p:Prevention)
-            RETURN collect(DISTINCT {disease: d.name, prevention_methods: collect(p.name)}) AS disease_prevention
-        """,
-        "risk_factors": """
-            MATCH (d:Disease)-[:HAS_RISK_FACTOR]->(r:RiskFactor)
-            RETURN collect(DISTINCT {disease: d.name, risk_factors: collect(r.name)}) AS disease_risk_factors
-        """
-    }
-    
-    # Return early if this query type doesn't support list all
-    if query_type not in list_all_templates:
-        return ""
-        
-    context = ""
-    with driver.session() as session:
-        try:
-            result = session.run(list_all_templates[query_type])
-            record = result.single()
-            
-            if not record:
-                return ""
+#             # For each entity, check if it's a disease or the expected entity type
+#             for entity in entities:
+#                 # Check if entity is of the expected type for this query
+#                 result = session.run(
+#                     f"MATCH (e:{query_type_mapping[query_type]['node']}) WHERE toLower(e.name) = toLower($entity) RETURN count(e) AS count",
+#                     entity=entity
+#                 )
+#                 record = result.single()
+#                 if record and record["count"] > 0:
+#                     entity_count += 1
                 
-            context += f"## {query_type.title()} for all diseases:\n\n"
+#                 # Check if entity is a disease
+#                 result = session.run(
+#                     "MATCH (d:Disease) WHERE toLower(d.name) = toLower($entity) RETURN count(d) AS count",
+#                     entity=entity
+#                 )
+#                 record = result.single()
+#                 if record and record["count"] > 0:
+#                     disease_count += 1
             
-            if query_type == "symptoms":
-                for item in record["disease_symptoms"]:
-                    context += f"Disease: {item['disease']}\nSymptoms: {', '.join(item['symptoms'])}\n\n"
-            elif query_type == "treatments":
-                for item in record["disease_treatments"]:
-                    context += f"Disease: {item['disease']}\nTreatments: {', '.join(item['treatments'])}\n\n"
-            elif query_type == "prevention":
-                for item in record["disease_prevention"]:
-                    context += f"Disease: {item['disease']}\nPrevention Methods: {', '.join(item['prevention_methods'])}\n\n"
-            elif query_type == "risk_factors":
-                for item in record["disease_risk_factors"]:
-                    context += f"Disease: {item['disease']}\nRisk Factors: {', '.join(item['risk_factors'])}\n\n"
-        except Exception as e:
-            print(f"Error executing list all query for {query_type}: {str(e)}")
-            
-    return context
-
-
-def _execute_forward_lookup(entity, query_type):
-    """
-    Execute a forward lookup query (disease → property).
-    
-    Args:
-        entity (str): Entity name to look up
-        query_type (str): Type of information being requested
-        
-    Returns:
-        str: Formatted context text or empty string if no results
-    """
-    # Forward lookup templates (disease → property)
-    forward_query_templates = {
-        "symptoms": """
-            MATCH (d:Disease)
-            WHERE toLower(d.name) = toLower($entity)
-            OPTIONAL MATCH (d)-[:HAS_SYMPTOM]->(s:Symptom)
-            RETURN d.name AS disease, collect(s.name) AS symptoms
-        """,
-        "treatments": """
-            MATCH (d:Disease)
-            WHERE toLower(d.name) = toLower($entity)
-            OPTIONAL MATCH (d)-[:HAS_TREATMENT]->(t:Treatment)
-            RETURN d.name AS disease, collect(t.name) AS treatments
-        """,
-        "prevention": """
-            MATCH (d:Disease)
-            WHERE toLower(d.name) = toLower($entity)
-            OPTIONAL MATCH (d)-[:HAS_PREVENTION]->(p:Prevention)
-            RETURN d.name AS disease, collect(p.name) AS prevention_methods
-        """,
-        "risk_factors": """
-            MATCH (d:Disease)
-            WHERE toLower(d.name) = toLower($entity)
-            OPTIONAL MATCH (d)-[:HAS_RISK_FACTOR]->(r:RiskFactor)
-            RETURN d.name AS disease, collect(r.name) AS risk_factors
-        """,
-        "age_groups": """
-            MATCH (d:Disease)
-            WHERE toLower(d.name) = toLower($entity)
-            OPTIONAL MATCH (d)-[:AFFECTS]->(a:AgeGroup)
-            RETURN d.name AS disease, collect(a.name) AS age_groups
-        """,
-        "gender": """
-            MATCH (d:Disease)
-            WHERE toLower(d.name) = toLower($entity)
-            OPTIONAL MATCH (d)-[r:AFFECTS]->(g:Gender)
-            RETURN d.name AS disease, collect({gender: g.name, prevalence: r.prevalence}) AS gender_prevalence
-        """,
-        "prevalence": """
-            MATCH (d:Disease)
-            WHERE toLower(d.name) = toLower($entity)
-            OPTIONAL MATCH (d)-[r:AFFECTS]->(n)
-            WHERE n:Gender OR n:AgeGroup
-            RETURN d.name AS disease, 
-                   collect(DISTINCT CASE WHEN n:Gender THEN {type: 'Gender', name: n.name, prevalence: r.prevalence} END) AS gender_prevalence,
-                   collect(DISTINCT CASE WHEN n:AgeGroup THEN {type: 'AgeGroup', name: n.name} END) AS age_groups
-        """,
-        "general": """
-            MATCH (d:Disease)
-            WHERE toLower(d.name) = toLower($entity)
-            OPTIONAL MATCH (d)-[r]-(n)
-            RETURN d.name AS disease, type(r) AS relationship, collect(n.name) AS related_entities
-        """
-    }
-    
-    context = ""
-    with driver.session() as session:
-        try:
-            query = forward_query_templates.get(query_type, forward_query_templates["general"])
-            result = session.run(query, entity=entity)
-            record = result.single()
-            
-            if not record:
-                return ""
+#             # If we have more of the expected entity type than diseases, assume it's a reverse lookup
+#             if entity_count > disease_count:
+#                 # Collect confirmed entities of the expected type
+#                 confirmed_entities = []
+#                 for entity in entities:
+#                     result = session.run(
+#                         f"MATCH (e:{query_type_mapping[query_type]['node']}) WHERE toLower(e.name) = toLower($entity) RETURN e.name AS name",
+#                         entity=entity
+#                     )
+#                     record = result.single()
+#                     if record:
+#                         confirmed_entities.append(record["name"])
                 
-            # Format results based on query type
-            if query_type == "symptoms":
-                context += f"Disease: {record['disease']}\nSymptoms: {', '.join(record['symptoms'])}\n\n"
-            elif query_type == "treatments":
-                context += f"Disease: {record['disease']}\nTreatments: {', '.join(record['treatments'])}\n\n"
-            elif query_type == "prevention":
-                context += f"Disease: {record['disease']}\nPrevention Methods: {', '.join(record['prevention_methods'])}\n\n"
-            elif query_type == "risk_factors":
-                context += f"Disease: {record['disease']}\nRisk Factors: {', '.join(record['risk_factors'])}\n\n"
-            elif query_type == "age_groups":
-                context += f"Disease: {record['disease']}\nAge Groups: {', '.join(record['age_groups'])}\n\n"
-            elif query_type == "gender":
-                gender_info = [f"{g['gender']} ({g['prevalence']}%)" for g in record['gender_prevalence'] if g and g['prevalence'] is not None]
-                context += f"Disease: {record['disease']}\nGender Distribution: {', '.join(gender_info)}\n\n"
-            elif query_type == "prevalence":
-                gender_info = [f"{g['name']} ({g['prevalence']}%)" for g in record['gender_prevalence'] if g and g['prevalence'] is not None]
-                age_info = [g['name'] for g in record['age_groups'] if g]
-                context += f"Disease: {record['disease']}\n"
-                if gender_info:
-                    context += f"Gender Distribution: {', '.join(gender_info)}\n"
-                if age_info:
-                    context += f"Age Groups: {', '.join(age_info)}\n"
-                context += "\n"
-            else:
-                context += f"Disease: {record['disease']}\n{record['relationship'].replace('_', ' ').title()}: {', '.join(record['related_entities'])}\n\n"
-        except Exception as e:
-            print(f"Error executing forward lookup for {entity}, {query_type}: {str(e)}")
+#                 if confirmed_entities:
+#                     return _execute_multi_entity_lookup(
+#                         confirmed_entities,
+#                         query_type_mapping[query_type]["node"],
+#                         query_type_mapping[query_type]["relationship"],
+#                         query_type_mapping[query_type]["display"]
+#                     )
+    
+#     # Process each entity from the question
+#     for entity in entities:
+#         # Try forward lookup first (disease → properties)
+#         forward_result = _execute_forward_lookup(entity, query_type)
+#         if forward_result:
+#             context += forward_result
+#             continue
             
-    return context
+#         # If forward lookup fails, try reverse lookup (property → diseases)
+#         reverse_result = _execute_reverse_lookup(entity, query_type)
+#         if reverse_result:
+#             context += reverse_result
+    
+#     return context
 
 
-def _execute_reverse_lookup(entity, query_type):
-    """
-    Execute a reverse lookup query (property → disease).
+# def _handle_list_all_query(query_type):
+#     """
+#     Handle queries that request information about all relationships of a certain type.
     
-    Args:
-        entity (str): Entity name to look up
-        query_type (str): Type of information being requested
+#     Args:
+#         query_type (str): Type of medical information requested
         
-    Returns:
-        str: Formatted context text or empty string if no results or unsupported query type
-    """
-    # Reverse lookup templates (property → disease)
-    reverse_query_templates = {
-        "symptoms": """
-            MATCH (s:Symptom)<-[:HAS_SYMPTOM]-(d:Disease)
-            WHERE toLower(s.name) = toLower($entity)
-            RETURN s.name AS symptom, collect(d.name) AS diseases
-        """,
-        "treatments": """
-            MATCH (t:Treatment)<-[:HAS_TREATMENT]-(d:Disease)
-            WHERE toLower(t.name) = toLower($entity)
-            RETURN t.name AS treatment, collect(d.name) AS diseases
-        """,
-        "prevention": """
-            MATCH (p:Prevention)<-[:HAS_PREVENTION]-(d:Disease)
-            WHERE toLower(p.name) = toLower($entity)
-            RETURN p.name AS prevention, collect(d.name) AS diseases
-        """,
-        "risk_factors": """
-            MATCH (r:RiskFactor)<-[:HAS_RISK_FACTOR]-(d:Disease)
-            WHERE toLower(r.name) = toLower($entity)
-            RETURN r.name AS risk_factor, collect(d.name) AS diseases
-        """,
-        "age_groups": """
-            MATCH (a:AgeGroup)<-[:AFFECTS]-(d:Disease)
-            WHERE toLower(a.name) = toLower($entity)
-            RETURN a.name AS age_group, collect(d.name) AS diseases
-        """,
-        "gender": """
-            MATCH (g:Gender)<-[r:AFFECTS]-(d:Disease)
-            WHERE toLower(g.name) = toLower($entity)
-            RETURN g.name AS gender, collect({disease: d.name, prevalence: r.prevalence}) AS diseases
-        """
-    }
+#     Returns:
+#         str: Formatted context with information about all entities of the requested type
+#     """
+#     # Define templates for listing all relationships
+#     list_all_templates = {
+#         "symptoms": """
+#             MATCH (d:Disease)-[:HAS_SYMPTOM]->(s:Symptom)
+#             RETURN collect(DISTINCT {disease: d.name, symptoms: collect(s.name)}) AS disease_symptoms
+#         """,
+#         "treatments": """
+#             MATCH (d:Disease)-[:HAS_TREATMENT]->(t:Treatment)
+#             RETURN collect(DISTINCT {disease: d.name, treatments: collect(t.name)}) AS disease_treatments
+#         """,
+#         "prevention": """
+#             MATCH (d:Disease)-[:HAS_PREVENTION]->(p:Prevention)
+#             RETURN collect(DISTINCT {disease: d.name, prevention_methods: collect(p.name)}) AS disease_prevention
+#         """,
+#         "risk_factors": """
+#             MATCH (d:Disease)-[:HAS_RISK_FACTOR]->(r:RiskFactor)
+#             RETURN collect(DISTINCT {disease: d.name, risk_factors: collect(r.name)}) AS disease_risk_factors
+#         """
+#     }
     
-    # Return early if this query type doesn't support reverse lookup
-    if query_type not in reverse_query_templates:
-        return ""
+#     # Return early if this query type doesn't support list all
+#     if query_type not in list_all_templates:
+#         return ""
         
-    context = ""
-    with driver.session() as session:
-        try:
-            query = reverse_query_templates[query_type]
-            result = session.run(query, entity=entity)
-            record = result.single()
+#     context = ""
+#     with driver.session() as session:
+#         try:
+#             result = session.run(list_all_templates[query_type])
+#             record = result.single()
             
-            if not record:
-                return ""
+#             if not record:
+#                 return ""
                 
-            # Format results based on query type
-            if query_type == "symptoms":
-                context += f"Symptom: {record['symptom']}\nDiseases: {', '.join(record['diseases'])}\n\n"
-            elif query_type == "treatments":
-                context += f"Treatment: {record['treatment']}\nDiseases: {', '.join(record['diseases'])}\n\n"
-            elif query_type == "prevention":
-                context += f"Prevention: {record['prevention']}\nDiseases: {', '.join(record['diseases'])}\n\n"
-            elif query_type == "risk_factors":
-                context += f"Risk Factor: {record['risk_factor']}\nDiseases: {', '.join(record['diseases'])}\n\n"
-            elif query_type == "age_groups":
-                context += f"Age Group: {record['age_group']}\nDiseases: {', '.join(record['diseases'])}\n\n"
-            elif query_type == "gender":
-                disease_info = [f"{d['disease']} ({d['prevalence']}%)" for d in record['diseases'] if d['prevalence'] is not None]
-                context += f"Gender: {record['gender']}\nDiseases: {', '.join(disease_info)}\n\n"
-        except Exception as e:
-            print(f"Error executing reverse lookup for {entity}, {query_type}: {str(e)}")
+#             context += f"## {query_type.title()} for all diseases:\n\n"
             
-    return context
+#             if query_type == "symptoms":
+#                 for item in record["disease_symptoms"]:
+#                     context += f"Disease: {item['disease']}\nSymptoms: {', '.join(item['symptoms'])}\n\n"
+#             elif query_type == "treatments":
+#                 for item in record["disease_treatments"]:
+#                     context += f"Disease: {item['disease']}\nTreatments: {', '.join(item['treatments'])}\n\n"
+#             elif query_type == "prevention":
+#                 for item in record["disease_prevention"]:
+#                     context += f"Disease: {item['disease']}\nPrevention Methods: {', '.join(item['prevention_methods'])}\n\n"
+#             elif query_type == "risk_factors":
+#                 for item in record["disease_risk_factors"]:
+#                     context += f"Disease: {item['disease']}\nRisk Factors: {', '.join(item['risk_factors'])}\n\n"
+#         except Exception as e:
+#             print(f"Error executing list all query for {query_type}: {str(e)}")
+            
+#     return context
+
+
+# def _execute_forward_lookup(entity, query_type):
+#     """
+#     Execute a forward lookup query (disease → property).
+    
+#     Args:
+#         entity (str): Entity name to look up
+#         query_type (str): Type of information being requested
+        
+#     Returns:
+#         str: Formatted context text or empty string if no results
+#     """
+#     # Forward lookup templates (disease → property)
+#     forward_query_templates = {
+#         "symptoms": """
+#             MATCH (d:Disease)
+#             WHERE toLower(d.name) = toLower($entity)
+#             OPTIONAL MATCH (d)-[:HAS_SYMPTOM]->(s:Symptom)
+#             RETURN d.name AS disease, collect(s.name) AS symptoms
+#         """,
+#         "treatments": """
+#             MATCH (d:Disease)
+#             WHERE toLower(d.name) = toLower($entity)
+#             OPTIONAL MATCH (d)-[:HAS_TREATMENT]->(t:Treatment)
+#             RETURN d.name AS disease, collect(t.name) AS treatments
+#         """,
+#         "prevention": """
+#             MATCH (d:Disease)
+#             WHERE toLower(d.name) = toLower($entity)
+#             OPTIONAL MATCH (d)-[:HAS_PREVENTION]->(p:Prevention)
+#             RETURN d.name AS disease, collect(p.name) AS prevention_methods
+#         """,
+#         "risk_factors": """
+#             MATCH (d:Disease)
+#             WHERE toLower(d.name) = toLower($entity)
+#             OPTIONAL MATCH (d)-[:HAS_RISK_FACTOR]->(r:RiskFactor)
+#             RETURN d.name AS disease, collect(r.name) AS risk_factors
+#         """,
+#         "age_groups": """
+#             MATCH (d:Disease)
+#             WHERE toLower(d.name) = toLower($entity)
+#             OPTIONAL MATCH (d)-[:AFFECTS]->(a:AgeGroup)
+#             RETURN d.name AS disease, collect(a.name) AS age_groups
+#         """,
+#         "gender": """
+#             MATCH (d:Disease)
+#             WHERE toLower(d.name) = toLower($entity)
+#             OPTIONAL MATCH (d)-[r:AFFECTS]->(g:Gender)
+#             RETURN d.name AS disease, collect({gender: g.name, prevalence: r.prevalence}) AS gender_prevalence
+#         """,
+#         "prevalence": """
+#             MATCH (d:Disease)
+#             WHERE toLower(d.name) = toLower($entity)
+#             OPTIONAL MATCH (d)-[r:AFFECTS]->(n)
+#             WHERE n:Gender OR n:AgeGroup
+#             RETURN d.name AS disease, 
+#                    collect(DISTINCT CASE WHEN n:Gender THEN {type: 'Gender', name: n.name, prevalence: r.prevalence} END) AS gender_prevalence,
+#                    collect(DISTINCT CASE WHEN n:AgeGroup THEN {type: 'AgeGroup', name: n.name} END) AS age_groups
+#         """,
+#         "general": """
+#             MATCH (d:Disease)
+#             WHERE toLower(d.name) = toLower($entity)
+#             OPTIONAL MATCH (d)-[r]-(n)
+#             RETURN d.name AS disease, type(r) AS relationship, collect(n.name) AS related_entities
+#         """
+#     }
+    
+#     context = ""
+#     with driver.session() as session:
+#         try:
+#             query = forward_query_templates.get(query_type, forward_query_templates["general"])
+#             result = session.run(query, entity=entity)
+#             record = result.single()
+            
+#             if not record:
+#                 return ""
+                
+#             # Format results based on query type
+#             if query_type == "symptoms":
+#                 context += f"Disease: {record['disease']}\nSymptoms: {', '.join(record['symptoms'])}\n\n"
+#             elif query_type == "treatments":
+#                 context += f"Disease: {record['disease']}\nTreatments: {', '.join(record['treatments'])}\n\n"
+#             elif query_type == "prevention":
+#                 context += f"Disease: {record['disease']}\nPrevention Methods: {', '.join(record['prevention_methods'])}\n\n"
+#             elif query_type == "risk_factors":
+#                 context += f"Disease: {record['disease']}\nRisk Factors: {', '.join(record['risk_factors'])}\n\n"
+#             elif query_type == "age_groups":
+#                 context += f"Disease: {record['disease']}\nAge Groups: {', '.join(record['age_groups'])}\n\n"
+#             elif query_type == "gender":
+#                 gender_info = [f"{g['gender']} ({g['prevalence']}%)" for g in record['gender_prevalence'] if g and g['prevalence'] is not None]
+#                 context += f"Disease: {record['disease']}\nGender Distribution: {', '.join(gender_info)}\n\n"
+#             elif query_type == "prevalence":
+#                 gender_info = [f"{g['name']} ({g['prevalence']}%)" for g in record['gender_prevalence'] if g and g['prevalence'] is not None]
+#                 age_info = [g['name'] for g in record['age_groups'] if g]
+#                 context += f"Disease: {record['disease']}\n"
+#                 if gender_info:
+#                     context += f"Gender Distribution: {', '.join(gender_info)}\n"
+#                 if age_info:
+#                     context += f"Age Groups: {', '.join(age_info)}\n"
+#                 context += "\n"
+#             else:
+#                 context += f"Disease: {record['disease']}\n{record['relationship'].replace('_', ' ').title()}: {', '.join(record['related_entities'])}\n\n"
+#         except Exception as e:
+#             print(f"Error executing forward lookup for {entity}, {query_type}: {str(e)}")
+            
+#     return context
+
+
+# def _execute_reverse_lookup(entity, query_type):
+    # """
+    # Execute a reverse lookup query (property → disease).
+    
+    # Args:
+    #     entity (str): Entity name to look up
+    #     query_type (str): Type of information being requested
+        
+    # Returns:
+    #     str: Formatted context text or empty string if no results or unsupported query type
+    # """
+    # # Reverse lookup templates (property → disease)
+    # reverse_query_templates = {
+    #     "symptoms": """
+    #         MATCH (s:Symptom)<-[:HAS_SYMPTOM]-(d:Disease)
+    #         WHERE toLower(s.name) = toLower($entity)
+    #         RETURN s.name AS symptom, collect(d.name) AS diseases
+    #     """,
+    #     "treatments": """
+    #         MATCH (t:Treatment)<-[:HAS_TREATMENT]-(d:Disease)
+    #         WHERE toLower(t.name) = toLower($entity)
+    #         RETURN t.name AS treatment, collect(d.name) AS diseases
+    #     """,
+    #     "prevention": """
+    #         MATCH (p:Prevention)<-[:HAS_PREVENTION]-(d:Disease)
+    #         WHERE toLower(p.name) = toLower($entity)
+    #         RETURN p.name AS prevention, collect(d.name) AS diseases
+    #     """,
+    #     "risk_factors": """
+    #         MATCH (r:RiskFactor)<-[:HAS_RISK_FACTOR]-(d:Disease)
+    #         WHERE toLower(r.name) = toLower($entity)
+    #         RETURN r.name AS risk_factor, collect(d.name) AS diseases
+    #     """,
+    #     "age_groups": """
+    #         MATCH (a:AgeGroup)<-[:AFFECTS]-(d:Disease)
+    #         WHERE toLower(a.name) = toLower($entity)
+    #         RETURN a.name AS age_group, collect(d.name) AS diseases
+    #     """,
+    #     "gender": """
+    #         MATCH (g:Gender)<-[r:AFFECTS]-(d:Disease)
+    #         WHERE toLower(g.name) = toLower($entity)
+    #         RETURN g.name AS gender, collect({disease: d.name, prevalence: r.prevalence}) AS diseases
+    #     """
+    # }
+    
+    # # Return early if this query type doesn't support reverse lookup
+    # if query_type not in reverse_query_templates:
+    #     return ""
+        
+    # context = ""
+    # with driver.session() as session:
+    #     try:
+    #         query = reverse_query_templates[query_type]
+    #         result = session.run(query, entity=entity)
+    #         record = result.single()
+            
+    #         if not record:
+    #             return ""
+                
+    #         # Format results based on query type
+    #         if query_type == "symptoms":
+    #             context += f"Symptom: {record['symptom']}\nDiseases: {', '.join(record['diseases'])}\n\n"
+    #         elif query_type == "treatments":
+    #             context += f"Treatment: {record['treatment']}\nDiseases: {', '.join(record['diseases'])}\n\n"
+    #         elif query_type == "prevention":
+    #             context += f"Prevention: {record['prevention']}\nDiseases: {', '.join(record['diseases'])}\n\n"
+    #         elif query_type == "risk_factors":
+    #             context += f"Risk Factor: {record['risk_factor']}\nDiseases: {', '.join(record['diseases'])}\n\n"
+    #         elif query_type == "age_groups":
+    #             context += f"Age Group: {record['age_group']}\nDiseases: {', '.join(record['diseases'])}\n\n"
+    #         elif query_type == "gender":
+    #             disease_info = [f"{d['disease']} ({d['prevalence']}%)" for d in record['diseases'] if d['prevalence'] is not None]
+    #             context += f"Gender: {record['gender']}\nDiseases: {', '.join(disease_info)}\n\n"
+    #     except Exception as e:
+    #         print(f"Error executing reverse lookup for {entity}, {query_type}: {str(e)}")
+            
+    # return context
 
 
 def generate_response(question, use_graph=False):
@@ -478,7 +672,7 @@ def generate_response(question, use_graph=False):
 
 def evaluate_factual_accuracy(response):
     """Evaluate the factual accuracy of a response by checking entities against the Neo4j database."""
-    entities = extract_medical_entities(response)
+    entities = extract_entities(response)
 
     # Group entities by type
     entity_groups = {}
@@ -699,7 +893,7 @@ def _process_single_question(question):
     response_without_graph = generate_response(prompt_without_graph, use_graph=False)
     
     # Generate response with graph
-    context = fetch_context_from_neo4j(entities, query_type)
+    context = execute_cypher_query(question)
     
     # Choose instruction based on context availability
     instruction = with_context_instruction if context else without_context_instruction
@@ -1022,6 +1216,244 @@ def _clean_response_text(response_text):
     return response_text.replace("\n", " ").replace("*", "").replace("---", "")
 
 
+# def _execute_multi_entity_lookup(entities, node_type, relationship, display_name):
+#     """
+#     Execute a lookup for diseases that are related to all specified entities of a given type.
+    
+#     Args:
+#         entities (list): List of entity names to look up
+#         node_type (str): Type of nodes to look for (Symptom, Treatment, Prevention, etc.)
+#         relationship (str): Relationship type to follow (HAS_SYMPTOM, HAS_TREATMENT, etc.)
+#         display_name (str): Display name for the entity type in the output (symptoms, treatments, etc.)
+        
+#     Returns:
+#         str: Formatted context text with diseases that relate to all the specified entities
+#     """
+#     if not entities or len(entities) == 0:
+#         return ""
+        
+#     context = ""
+#     with driver.session() as session:
+#         try:
+#             # For a single entity, use standard reverse lookup
+#             if len(entities) == 1:
+#                 # Map node type to query type
+#                 node_to_query = {
+#                     "Symptom": "symptoms",
+#                     "Treatment": "treatments",
+#                     "Prevention": "prevention",
+#                     "RiskFactor": "risk_factors",
+#                     "AgeGroup": "age_groups",
+#                     "Gender": "gender"
+#                 }
+#                 query_type = node_to_query.get(node_type, "general")
+#                 return _execute_reverse_lookup(entities[0], query_type)
+            
+#             # For multiple entities, find diseases that relate to ALL the entities
+#             query = """
+#             MATCH (d:Disease)
+#             """
+            
+#             # Create MATCH conditions for each entity
+#             for i, entity in enumerate(entities):
+#                 query += f"""
+#                 MATCH (d)-[:{relationship}]->(e{i}:{node_type})
+#                 WHERE toLower(e{i}.name) = toLower($entity{i})
+#                 """
+            
+#             # Complete the query to return matching diseases
+#             query += """
+#             RETURN d.name AS disease
+#             """
+            
+#             # Create parameters dictionary
+#             params = {}
+#             for i, entity in enumerate(entities):
+#                 params[f"entity{i}"] = entity
+            
+#             result = session.run(query, params)
+#             records = result.values()
+            
+#             if not records:
+#                 entity_list = ", ".join(entities)
+#                 context += f"No diseases found that are related to all these {display_name}: {entity_list}\n\n"
+#             else:
+#                 diseases = [record[0] for record in records]
+#                 entity_list = ", ".join(entities)
+#                 context += f"{display_name.capitalize()}: {entity_list}\nDiseases: {', '.join(diseases)}\n\n"
+                
+#         except Exception as e:
+#             print(f"Error executing multi-entity lookup for {entities}: {str(e)}")
+            
+#     return context
+
+
+# def _execute_multi_symptom_lookup(symptoms):
+#     """
+#     Execute a lookup for diseases that have all specified symptoms.
+    
+#     Args:
+#         symptoms (list): List of symptom names to look up
+        
+#     Returns:
+#         str: Formatted context text with diseases that have all the specified symptoms
+#     """
+#     return _execute_multi_entity_lookup(symptoms, "Symptom", "HAS_SYMPTOM", "symptoms")
+
+
+def generate_cypher_query(question):
+    """
+    Generate a Cypher query from a natural language question using LLM.
+    
+    Args:
+        question (str): Natural language question about medical information
+        
+    Returns:
+        tuple: (cypher_query, params) where cypher_query is the generated query string
+               and params is a dictionary of parameters for the query
+    """
+    # Extract entities and query type using existing function
+    entities, query_type = analyze_question(question)
+    
+    # Create a schema description for the LLM
+    schema_description = """
+Schema:
+- Nodes: Disease, Symptom, Treatment, Prevention, RiskFactor, AgeGroup, Gender
+- Relationships:
+  * (Disease)-[:HAS_SYMPTOM]->(Symptom)
+  * (Disease)-[:HAS_TREATMENT]->(Treatment)
+  * (Disease)-[:HAS_PREVENTION]->(Prevention)
+  * (Disease)-[:HAS_RISK_FACTOR]->(RiskFactor)
+  * (Disease)-[:AFFECTS]->(AgeGroup)
+  * (Disease)-[:AFFECTS {prevalence: int}]->(Gender)
+"""
+    
+    # Create examples for common query patterns
+    examples = """
+        Examples:
+        1. "What are the symptoms of Influenza?"
+        MATCH (d:Disease {name: 'Influenza'})-[:HAS_SYMPTOM]->(s:Symptom)
+        RETURN d.name AS disease, collect(s.name) AS symptoms
+
+        2. "Which diseases have Fever as a symptom?"
+        MATCH (s:Symptom {name: 'Fever'})<-[:HAS_SYMPTOM]-(d:Disease)
+        RETURN s.name AS symptom, collect(d.name) AS diseases
+
+        3. "Which diseases have both Cough and Fever as symptoms?"
+        MATCH (d:Disease)-[:HAS_SYMPTOM]->(s1:Symptom {name: 'Cough'})
+        MATCH (d)-[:HAS_SYMPTOM]->(s2:Symptom {name: 'Fever'})
+        RETURN collect(DISTINCT d.name) AS diseases, s1.name AS symptom1, s2.name AS symptom2
+
+        4. "What treatments are available for Diabetes?"
+        MATCH (d:Disease {name: 'Diabetes'})-[:HAS_TREATMENT]->(t:Treatment)
+        RETURN d.name AS disease, collect(t.name) AS treatments
+
+        5. "How does Migraine affect different genders?"
+        MATCH (d:Disease {name: 'Migraine'})-[r:AFFECTS]->(g:Gender)
+        RETURN d.name AS disease, collect({gender: g.name, prevalence: r.prevalence}) AS gender_prevalence
+        
+        6. "What prevention methods are available for Asthma?"
+        MATCH (d:Disease {name: 'Asthma'})-[:HAS_PREVENTION]->(p:Prevention)
+        RETURN d.name AS disease, collect(p.name) AS prevention_methods
+        
+        7. "Which diseases are prevented by Vaccination?"
+        MATCH (p:Prevention {name: 'Vaccination'})<-[:HAS_PREVENTION]-(d:Disease)
+        RETURN p.name AS prevention, collect(d.name) AS diseases
+        
+        8. "How many symptoms are linked to Influenza?"
+        MATCH (d:Disease {name: 'Influenza'})-[:HAS_SYMPTOM]->(s:Symptom)
+        RETURN d.name AS disease, count(s) AS symptom_count, collect(s.name) AS symptoms
+    """
+
+        # Create a prompt for the LLM
+    prompt = f"""
+        Given a medical question, generate a Neo4j Cypher query to answer it.
+
+        {schema_description}
+
+        {examples}
+
+        User Question: "{question}"
+        Query Type: {query_type}
+        Extracted Entities: {', '.join(entities) if entities else 'None'}
+
+        Return ONLY the Cypher query without any explanation or additional text. The query should be executable as-is in Neo4j.
+    """
+
+    try:
+        # Get the Cypher query from the LLM
+        response = ollama.generate(
+            model="gemma3:4b",
+            prompt=prompt
+        )
+        
+        # Extract the response text
+        if hasattr(response, "response"):
+            cypher_query = response.response.strip()
+        elif hasattr(response, "text"):
+            cypher_query = response.text.strip()
+        else:
+            cypher_query = str(response).strip()
+        
+        # Clean up the query (remove markdown code blocks if present)
+        if cypher_query.startswith("```") and cypher_query.endswith("```"):
+            cypher_query = cypher_query[3:-3].strip()
+        if cypher_query.startswith("```cypher") or cypher_query.startswith("```Cypher"):
+            cypher_query = cypher_query[9:].strip()
+            if cypher_query.endswith("```"):
+                cypher_query = cypher_query[:-3].strip()
+                
+        print(f"Generated Cypher query for '{question}':\n{cypher_query}")
+        
+        # Prepare parameters
+        params = {}
+        for i, entity in enumerate(entities):
+            params[f"entity{i}"] = entity
+            # Replace placeholder parameters in the query
+            if f"$entity{i}" not in cypher_query:
+                # If the query doesn't use our parameter naming convention, add entity by name
+                params[entity] = entity
+        
+        return cypher_query, params
+        
+    except Exception as e:
+        print(f"Error generating Cypher query: {str(e)}")
+        return None, {}
+
+
+def execute_cypher_query(question):
+    """
+    Generate and execute a Cypher query from a natural language question.
+    
+    Args:
+        question (str): Natural language question about medical information
+        
+    Returns:
+        str: Formatted results from the Neo4j query
+    """
+    cypher_query, params = generate_cypher_query(question)
+    
+    if not cypher_query:
+        return "Failed to generate Cypher query"
+    
+    try:
+        with driver.session() as session:
+            result = session.run(cypher_query, params)
+            records = result.data()
+            
+            print(f"Query results: {records}")
+            
+            if not records:
+                return "No results found."
+            
+            return records
+            
+    except Exception as e:
+        error_message = str(e)
+        print(f"Error executing Cypher query: {error_message}")
+        return f"Error: {error_message}\nQuery: {cypher_query}"
+
+
 # Example usage
 sample_questions = [
     "What are the symptoms of Influenza?",
@@ -1063,6 +1495,6 @@ sample_questions = [
     "Which diseases have Sweating as a symptom?"
 ]
 
-
+# print(execute_cypher_query('What are the symptoms of Influenza?'))
 evaluation = evaluate_responses(sample_questions)
 generate_report(evaluation)
