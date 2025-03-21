@@ -129,7 +129,7 @@ The schema includes:
 Run the application in interactive mode to ask questions:
 
 ```bash
-python -m src.main --mode interactive --use_graph
+python -m src.main --mode interactive
 ```
 
 ### Single Question Mode
@@ -137,12 +137,12 @@ python -m src.main --mode interactive --use_graph
 Ask a single question:
 
 ```bash
-python -m src.main --mode single --question "What are the symptoms of Influenza?" --use_graph
+python -m src.main --mode single --question "What are the symptoms of Influenza?"
 ```
 
 ### QA Evaluation
 
-The system now includes a robust Question-Answer evaluation mechanism:
+Evaluate the system using predefined question-answer pairs and generate a comprehensive report:
 
 ```bash
 python -m src.main --mode qa_evaluate --report my_evaluation.md
@@ -150,25 +150,13 @@ python -m src.main --mode qa_evaluate --report my_evaluation.md
 
 ### Evaluation Mode
 
-Evaluate the system on sample questions and generate a report:
+Evaluate the system on sample questions and generate a comparative report:
 
 ```bash
-python -m src.main --mode evaluate --report my_evaluation.md
+python -m src.main --mode evaluate --method standard --report my_evaluation.md
 ```
 
-
-This mode evaluates the system using predefined question-answer pairs from `config.py`. The evaluation:
-
-1. Uses expected answers defined in `EXPECTED_QA_PAIRS` for accurate comparison
-2. Generates complex Cypher queries using LLM
-3. Executes queries against the Neo4j database
-4. Evaluates answers against expected results
-5. Produces a detailed Markdown report showing:
-   - Questions and entities extracted
-   - Generated Cypher queries
-   - System responses
-   - Expected answers
-   - Evaluation scores with explanations
+The `--method` parameter accepts one of: "standard", "detailed", or "comprehensive" evaluation approaches.
 
 ### Query Validation
 
