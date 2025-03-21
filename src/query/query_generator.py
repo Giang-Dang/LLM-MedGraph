@@ -5,7 +5,7 @@ import ollama
 from neo4j import GraphDatabase
 # Change relative imports to absolute imports
 from src.db.connection import get_neo4j_session
-from src.config import LLM_MODEL, get_logger
+from src.config import LLM_EVALUATION_MODEL, get_logger
 import re
 
 # Get module-specific logger
@@ -172,7 +172,7 @@ def create_query_with_llm(entities, query_type):
         # Call the LLM to generate the query
         logger.debug("Calling LLM for query generation")
         response = ollama.generate(
-            model=LLM_MODEL,
+            model=LLM_EVALUATION_MODEL,
             prompt=prompt
         )
         
@@ -191,7 +191,7 @@ def create_query_with_llm(entities, query_type):
         # Remove any cypher or other language markers
         query = query.replace("cypher", "").strip()
         
-        logger.info(f"Generated Cypher query with LLM ({LLM_MODEL}): {query[:100]}...")
+        logger.info(f"Generated Cypher query with LLM ({LLM_EVALUATION_MODEL}): {query[:100]}...")
         
         return query
     
