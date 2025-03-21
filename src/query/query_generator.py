@@ -51,13 +51,13 @@ def generate_cypher_query(entities, query_type):
     elif query_type == "treatments":
         logger.debug(f"Generating treatments query for {primary_entity}")
         return f"""
-        MATCH (d:Disease {{name: '{primary_entity}'}})-[:TREATED_BY]->(t:Treatment)
+        MATCH (d:Disease {{name: '{primary_entity}'}})-[:HAS_TREATMENT]->(t:Treatment)
         RETURN d.name AS disease, COLLECT(t.name) AS treatments
         """
     elif query_type == "prevention":
         logger.debug(f"Generating prevention query for {primary_entity}")
         return f"""
-        MATCH (d:Disease {{name: '{primary_entity}'}})-[:PREVENTED_BY]->(p:Prevention)
+        MATCH (d:Disease {{name: '{primary_entity}'}})-[:HAS_PREVENTION]->(p:Prevention)
         RETURN d.name AS disease, COLLECT(p.name) AS preventions
         """
     elif query_type == "risk_factors":
@@ -72,8 +72,8 @@ def generate_cypher_query(entities, query_type):
         return f"""
         MATCH (d:Disease {{name: '{primary_entity}'}})
         OPTIONAL MATCH (d)-[:HAS_SYMPTOM]->(s:Symptom)
-        OPTIONAL MATCH (d)-[:TREATED_BY]->(t:Treatment)
-        OPTIONAL MATCH (d)-[:PREVENTED_BY]->(p:Prevention)
+        OPTIONAL MATCH (d)-[:HAS_TREATMENT]->(t:Treatment)
+        OPTIONAL MATCH (d)-[:HAS_PREVENTION]->(p:Prevention)
         RETURN d.name AS disease, 
                COLLECT(DISTINCT s.name) AS symptoms,
                COLLECT(DISTINCT t.name) AS treatments,
@@ -106,12 +106,11 @@ def create_query_with_llm(entities, query_type):
     
     Key relationships in the graph:
     - (Disease)-[:HAS_SYMPTOM]->(Symptom)
-    - (Disease)-[:TREATED_BY]->(Treatment)
-    - (Disease)-[:PREVENTED_BY]->(Prevention)
+    - (Disease)-[:HAS_TREATMENT]->(Treatment)
+    - (Disease)-[:HAS_PREVENTION]->(Prevention)
     - (Disease)-[:HAS_RISK_FACTOR]->(RiskFactor)
-    - (Disease)-[:AFFECTS_AGE_GROUP]->(AgeGroup)
-    - (Disease)-[:AFFECTS_GENDER]->(Gender)
-    - (Disease)-[:RELATED_TO]->(Disease)
+    - (Disease)-[:AFFECTS]->(AgeGroup)
+    - (Disease)-[:AFFECTS]->(Gender) with {prevalence} property
     """
     
     # Add additional context based on query type
@@ -141,10 +140,15 @@ def create_query_with_llm(entities, query_type):
     Generate a Cypher query that:
     1. Properly references the entities mentioned
     2. Returns the most relevant information for the query type
-    3. Uses appropriate MATCH, WHERE, and RETURN clauses
+    3. Uses appropriate MATCH, WHERE, and RETURN clauses in the correct order
     4. Handles cases where data might not exist with OPTIONAL MATCH
     5. Includes relevant aggregation functions like COLLECT() where appropriate
     6. Limits results to relevant information only
+    
+    IMPORTANT SYNTAX RULES:
+    - Must verify that the query is valid before returning it
+    - Always compare in case-insensitive manner
+    - Always use RETURN at the end of the query
     
     Return only the Cypher query with no explanation or markdown formatting.
     """
@@ -194,12 +198,19 @@ def execute_query(query):
     
     try:
         logger.info("Executing Neo4j query")
-        logger.debug(f"Query: {query}")
+        logger.debug(f"Original query: {query}")
+        
+        logger.debug(f"Final query: {query}")
         session = get_neo4j_session()
         response = session.run(query)
         
         for record in response:
-            results.append(dict(record))
+            # Convert record to a serializable dictionary
+            record_dict = {}
+            for key, value in dict(record).items():
+                # Handle Neo4j specific types
+                record_dict[key] = neo4j_to_python(value)
+            results.append(record_dict)
         
         logger.info(f"Query returned {len(results)} results")
         logger.debug(f"Query results: {results}")
@@ -213,4 +224,61 @@ def execute_query(query):
             "query": query
         }]
         
-    return results 
+    return results
+
+def neo4j_to_python(value):
+    """
+    Convert Neo4j database objects to Python native types for JSON serialization.
+    
+    Handles:
+    - Neo4j Node objects
+    - Neo4j Relationship objects
+    - Neo4j Path objects
+    - Lists/collections of Neo4j objects
+    - Basic Python types (pass-through)
+    
+    Args:
+        value: A Neo4j value to convert
+        
+    Returns:
+        A Python native type suitable for JSON serialization
+    """
+    # Import locally to avoid circular imports
+    from neo4j.graph import Node, Relationship, Path
+    
+    # Handle None
+    if value is None:
+        return None
+        
+    # Handle Neo4j Node
+    if isinstance(value, Node):
+        node_dict = dict(value.items())
+        node_dict['_labels'] = list(value.labels)
+        node_dict['_id'] = value.id
+        return node_dict
+        
+    # Handle Neo4j Relationship
+    elif isinstance(value, Relationship):
+        rel_dict = dict(value.items())
+        rel_dict['_type'] = value.type
+        rel_dict['_start_node_id'] = value.start_node.id
+        rel_dict['_end_node_id'] = value.end_node.id
+        return rel_dict
+        
+    # Handle Neo4j Path
+    elif isinstance(value, Path):
+        return {
+            'nodes': [neo4j_to_python(node) for node in value.nodes],
+            'relationships': [neo4j_to_python(rel) for rel in value.relationships]
+        }
+        
+    # Handle lists/collections
+    elif isinstance(value, (list, set)):
+        return [neo4j_to_python(item) for item in value]
+        
+    # Handle dictionaries
+    elif isinstance(value, dict):
+        return {k: neo4j_to_python(v) for k, v in value.items()}
+        
+    # Pass through basic types
+    return value 

@@ -147,6 +147,50 @@ Evaluate the system on sample questions and generate a report:
 python -m src.main --mode evaluate --report my_evaluation.md
 ```
 
+### QA Evaluation
+
+The system now includes a robust Question-Answer evaluation mechanism:
+
+```bash
+python -m src.main --mode qa_evaluate --report my_evaluation.md
+```
+
+This mode evaluates the system using predefined question-answer pairs from `config.py`. The evaluation:
+
+1. Uses expected answers defined in `EXPECTED_QA_PAIRS` for accurate comparison
+2. Generates complex Cypher queries using LLM
+3. Executes queries against the Neo4j database
+4. Evaluates answers against expected results
+5. Produces a detailed Markdown report showing:
+   - Questions and entities extracted
+   - Generated Cypher queries
+   - System responses
+   - Expected answers
+   - Evaluation scores with explanations
+
+### Query Validation
+
+The system includes sophisticated query validation and correction logic in `query_generator.py` that automatically:
+
+1. Fixes multiple RETURN statements by consolidating them into a single, properly structured RETURN
+2. Corrects incorrect relationship directions in symptom queries
+3. Relocates WHERE clauses that appear after RETURN statements
+4. Replaces logical OR operators ('|' with 'OR') for proper Cypher syntax
+5. Fixes string literal formatting in IN clauses
+6. Handles cases where both treatments and symptoms are queried together
+
+### Sample Questions and Expected Answers
+
+The system uses a collection of sample questions in `config.py` (`SAMPLE_QUESTIONS`) along with their expected answers (`EXPECTED_QA_PAIRS`) for evaluation. This allows for automated testing of the system's accuracy and performance.
+
+Example of a question-answer pair:
+```python
+{
+    "question": "What are the symptoms of Influenza?",
+    "expected_answer": "The symptoms of Influenza are fever, cough, and fatigue."
+}
+```
+
 ### Example Usage
 
 See `src/example.py` for examples of using individual components:

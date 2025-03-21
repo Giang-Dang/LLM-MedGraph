@@ -26,6 +26,17 @@ def get_driver():
         )
     return _driver
 
+def get_neo4j_session():
+    """
+    Get a Neo4j session for database interactions.
+    
+    Returns:
+        neo4j.Session: A new Neo4j session
+    """
+    driver = get_driver()
+    logger.debug("Creating new Neo4j session")
+    return driver.session()
+
 def close_driver():
     """Close the Neo4j driver if it exists."""
     global _driver

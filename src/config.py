@@ -11,6 +11,11 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
+# Application constants
+APPLICATION_NAME = "Medical Knowledge Graph"
+EVALUATION_METHODS = ["standard", "detailed", "comprehensive"]
+DEFAULT_REPORT_FILENAME = f"evaluation_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+
 # Configure logging
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 LOG_DIR = os.getenv("LOG_DIR", "logs")
@@ -140,4 +145,155 @@ SAMPLE_QUESTIONS = [
     "Which diseases can be prevented by Regular Exercise?",
     "What symptom is most common in Influenza?",
     "Which diseases have Sweating as a symptom?"
+]
+
+EXPECTED_QA_PAIRS = [
+    {
+        "question": "What are the symptoms of Influenza?",
+        "expected_answer": "The symptoms of Influenza are fever, cough, and fatigue."
+    },
+    {
+        "question": "What treatments are available for Diabetes?",
+        "expected_answer": "Diabetes is treated with insulin therapy."
+    },
+    {
+        "question": "What prevention methods are available for Asthma?",
+        "expected_answer": "Asthma can be prevented by avoiding allergens."
+    },
+    {
+        "question": "What symptoms are associated with Hypertension?",
+        "expected_answer": "Hypertension is associated with shortness of breath and chest pain."
+    },
+    {
+        "question": "Which diseases have Fever as a symptom?",
+        "expected_answer": "Influenza has fever as a symptom."
+    },
+    {
+        "question": "What treatments does Migraine have?",
+        "expected_answer": "Migraines are treated with pain relievers."
+    },
+    {
+        "question": "How can Influenza be prevented?",
+        "expected_answer": "Influenza can be prevented through vaccination."
+    },
+    {
+        "question": "List the symptoms of Diabetes.",
+        "expected_answer": "Diabetes has symptoms of fatigue and blurred vision."
+    },
+    {
+        "question": "Find diseases that have Cough as a symptom.",
+        "expected_answer": "Influenza and Asthma have cough as a symptom."
+    },
+    {
+        "question": "What prevention methods does Diabetes have?",
+        "expected_answer": "Diabetes can be prevented with a healthy diet."
+    },
+    {
+        "question": "What is the treatment for Asthma?",
+        "expected_answer": "Asthma is treated with bronchodilators."
+    },
+    {
+        "question": "Which disease uses Vaccination as prevention?",
+        "expected_answer": "Influenza uses vaccination as prevention."
+    },
+    {
+        "question": "What symptoms does Asthma have?",
+        "expected_answer": "Asthma has symptoms of shortness of breath and cough."
+    },
+    {
+        "question": "How many symptoms are linked to Influenza?",
+        "expected_answer": "Influenza has 3 symptoms: fever, cough, and fatigue."
+    },
+    {
+        "question": "Which diseases show Fatigue as a symptom?",
+        "expected_answer": "Influenza and Diabetes show fatigue as a symptom."
+    },
+    {
+        "question": "List all diseases with their symptoms.",
+        "expected_answer": "Influenza: fever, cough, fatigue. Diabetes: fatigue, blurred vision. Hypertension: shortness of breath, chest pain. Asthma: shortness of breath, cough. Migraine: headache, nausea."
+    },
+    {
+        "question": "What is the prevention method for Migraine?",
+        "expected_answer": "Migraines can be prevented through stress management."
+    },
+    {
+        "question": "What treatment is given for Hypertension?",
+        "expected_answer": "Hypertension is treated with antihypertensive drugs."
+    },
+    {
+        "question": "Find diseases that have Headache as a symptom.",
+        "expected_answer": "Migraine has headache as a symptom."
+    },
+    {
+        "question": "Which disease is linked to Nausea?",
+        "expected_answer": "Migraine is linked to nausea."
+    },
+    {
+        "question": "List the treatments for Hypertension.",
+        "expected_answer": "Hypertension is treated with antihypertensive drugs."
+    },
+    {
+        "question": "What prevention methods are used for Influenza?",
+        "expected_answer": "Influenza prevention includes vaccination."
+    },
+    {
+        "question": "What symptoms are related to Migraine?",
+        "expected_answer": "Migraines are related to headaches and nausea."
+    },
+    {
+        "question": "How is Diabetes treated?",
+        "expected_answer": "Diabetes is treated with insulin therapy."
+    },
+    {
+        "question": "Which diseases are prevented by a Healthy Diet?",
+        "expected_answer": "Diabetes is prevented by a healthy diet."
+    },
+    {
+        "question": "List diseases that have Shortness of Breath as a symptom.",
+        "expected_answer": "Hypertension and Asthma have shortness of breath as a symptom."
+    },
+    {
+        "question": "What are the common symptoms of Asthma?",
+        "expected_answer": "Asthma has symptoms of shortness of breath and cough."
+    },
+    {
+        "question": "Which diseases are linked to Cough and Fever?",
+        "expected_answer": "Influenza is linked to both cough and fever."
+    },
+    {
+        "question": "What treatment does Influenza have?",
+        "expected_answer": "Influenza is treated with antiviral medication."
+    },
+    {
+        "question": "What prevention is recommended for Hypertension?",
+        "expected_answer": "Regular exercise is recommended for preventing hypertension."
+    },
+    {
+        "question": "Which disease has the symptom Dizziness?",
+        "expected_answer": "None of the diseases in the database have dizziness as a symptom."
+    },
+    {
+        "question": "List the treatments available for Migraine.",
+        "expected_answer": "Migraines are treated with pain relievers."
+    },
+    {
+        "question": "What are the prevention methods for Diabetes?",
+        "expected_answer": "Diabetes can be prevented with a healthy diet."
+    },
+    {
+        "question": "How many diseases have the symptom Chest Pain?",
+        "expected_answer": "One disease (Hypertension) has chest pain as a symptom."
+    },
+    {
+        "question": "Which diseases can be prevented by Regular Exercise?",
+        "expected_answer": "Hypertension can be prevented by regular exercise."
+    },
+    {
+        "question": "What symptom is most common in Influenza?",
+        "expected_answer": "According to the prevalence data, fever is the most common symptom in Influenza with a prevalence of 90."
+    },
+    {
+        "question": "Which diseases have Sweating as a symptom?",
+        "expected_answer": "None of the diseases in the database have sweating as a symptom."
+    }
 ] 

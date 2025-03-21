@@ -2,10 +2,15 @@
 Main entry point for the Medical Knowledge Graph application.
 """
 import argparse
-from src.config import SAMPLE_QUESTIONS, get_logger
-from src.db.connection import close_driver
+import sys
+from src.config import (
+    EXPECTED_QA_PAIRS, SAMPLE_QUESTIONS, APPLICATION_NAME, 
+    EVALUATION_METHODS, DEFAULT_REPORT_FILENAME,
+    get_logger
+)
 from src.evaluation.accuracy import evaluate_responses
 from src.reporting.report import generate_report
+from src.reporting.qa_report import process_qa_pairs
 from src.query.cypher import execute_cypher_query
 from src.nlp.llm import generate_response
 
@@ -13,31 +18,55 @@ from src.nlp.llm import generate_response
 logger = get_logger("main")
 
 def parse_args():
-    """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description="Medical Knowledge Graph Query System")
+    """
+    Parse command line arguments.
+    
+    Returns:
+        argparse.Namespace: The parsed arguments
+    """
+    parser = argparse.ArgumentParser(description=f"{APPLICATION_NAME} CLI")
+    
+    # Mode selection
     parser.add_argument(
         "--mode", 
-        choices=["interactive", "evaluate", "single"], 
+        type=str, 
+        choices=["interactive", "single", "evaluate", "qa_evaluate"], 
         default="interactive",
-        help="Running mode: interactive chat, evaluate on sample questions, or single question"
-    )
-    parser.add_argument(
-        "--question", 
-        type=str,
-        help="Single question to answer (only used in single mode)"
-    )
-    parser.add_argument(
-        "--report", 
-        type=str,
-        help="Report filename (for evaluate mode)"
-    )
-    parser.add_argument(
-        "--use_graph", 
-        action="store_true",
-        help="Whether to use graph database for retrieving context"
+        help="Operating mode: interactive (default), single question, or evaluation"
     )
     
-    return parser.parse_args()
+    # Question for single mode
+    parser.add_argument(
+        "--question", 
+        type=str, 
+        help="Question to answer (required for single mode)"
+    )
+    
+    # Evaluation method
+    parser.add_argument(
+        "--method", 
+        type=str, 
+        choices=EVALUATION_METHODS,
+        default=EVALUATION_METHODS[0], 
+        help="Evaluation method (only for evaluate mode)"
+    )
+    
+    # Report filename
+    parser.add_argument(
+        "--report", 
+        type=str, 
+        default=DEFAULT_REPORT_FILENAME,
+        help="Filename for evaluation report (only for evaluate mode)"
+    )
+    
+    args = parser.parse_args()
+    
+    # Validate args
+    if args.mode == "single" and not args.question:
+        parser.error("--question is required when using --mode single")
+    
+    logger.info(f"Command-line arguments parsed: mode={args.mode}")
+    return args
 
 
 def interactive_mode(use_graph=True):
@@ -128,11 +157,12 @@ def single_question_mode(question, use_graph=True):
         return error_msg
 
 
-def evaluate_mode(report_filename=None):
+def evaluate_mode(method, report_filename=None):
     """
     Run evaluation on sample questions and generate a comparative report.
     
     Args:
+        method (str): The evaluation method to use
         report_filename (str, optional): Name of report file to generate. 
                                          If None, generates a filename with timestamp.
     
@@ -158,33 +188,68 @@ def evaluate_mode(report_filename=None):
     return report_path
 
 
-def main():
-    """Main function to run the application."""
-    # Parse command line arguments
-    args = parse_args()
+def qa_evaluate_mode(report_filename):
+    """
+    Run the question-answer evaluation mode.
     
-    logger.info(f"Starting Medical Knowledge Graph application in {args.mode} mode")
-    logger.debug(f"Command line arguments: {args}")
+    Args:
+        report_filename (str): Filename for the evaluation report
+    """
+    logger.info("Starting question-answer evaluation")
+    
+    print(f"\n{APPLICATION_NAME} - Question Answer Evaluation Mode")
+    print("=" * 50)
     
     try:
-        # Run in the selected mode
-        if args.mode == "interactive":
-            interactive_mode(use_graph=args.use_graph)
-        elif args.mode == "single":
-            if not args.question:
-                logger.error("No question provided for single mode")
-                # Display error message (user-facing)
-                print("Error: --question is required in single mode.")
-                return
-            single_question_mode(args.question, use_graph=args.use_graph)
-        elif args.mode == "evaluate":
-            evaluate_mode(args.report)
-    finally:
-        # Ensure the Neo4j driver is closed properly
-        logger.debug("Cleaning up resources")
-        close_driver()
+        # Create question-answer pairs from sample questions
+        qa_pairs = EXPECTED_QA_PAIRS
+        
+        print(f"Evaluating {len(qa_pairs)} question-answer pairs...")
+        
+        # Process QA pairs and generate the report
+        result_file = process_qa_pairs(qa_pairs, report_filename)
+        
+        if result_file:
+            print(f"\nEvaluation complete. Report saved to: {result_file}")
+            logger.info(f"Question-answer evaluation completed successfully. Report saved to {result_file}")
+        else:
+            print("\nEvaluation failed. Check the logs for more information.")
+            logger.error("Question-answer evaluation failed to complete")
     
-    logger.info("Application exiting normally")
+    except Exception as e:
+        error_msg = f"Error in question-answer evaluation: {str(e)}"
+        logger.error(error_msg, exc_info=True)
+        print(f"\nError: {error_msg}")
+
+
+def main():
+    """
+    Main entry point for the application.
+    """
+    # Parse command line args
+    args = parse_args()
+    
+    try:
+        # Determine which mode to run
+        if args.mode == "interactive":
+            logger.info("Starting interactive mode")
+            interactive_mode()
+        elif args.mode == "single":
+            logger.info(f"Starting single mode with question: {args.question}")
+            single_question_mode(args.question)
+        elif args.mode == "evaluate":
+            logger.info(f"Starting evaluation mode with method: {args.method}")
+            evaluate_mode(args.method, args.report)
+        elif args.mode == "qa_evaluate":
+            logger.info("Starting question-answer evaluation mode")
+            qa_evaluate_mode(args.report)
+        
+        logger.info("Application exiting normally")
+    except Exception as e:
+        error_msg = f"Unhandled exception in main: {str(e)}"
+        logger.error(error_msg, exc_info=True)
+        print(f"\nError: {error_msg}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

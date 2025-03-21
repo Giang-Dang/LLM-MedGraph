@@ -8,7 +8,7 @@ from difflib import SequenceMatcher
 # Change relative imports to absolute imports
 from src.config import LLM_MODEL, get_logger
 from src.nlp.entity_extraction import analyze_question
-from src.query.query_generator import generate_cypher_query, execute_query
+from src.query.query_generator import create_query_with_llm, execute_query
 
 # Get module-specific logger
 logger = get_logger("evaluation.evaluator")
@@ -37,7 +37,7 @@ def evaluate_question_answer_pairs(qa_pairs, report_filename):
         entities, query_type = analyze_question(question)
         
         # Generate and execute query
-        query = generate_cypher_query(entities, query_type)
+        query = create_query_with_llm(entities, query_type)
         query_results = execute_query(query)
         
         # Check if query execution returned an error
